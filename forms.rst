@@ -693,6 +693,17 @@ the choice is ultimately up to you.
     The form name is automatically generated from the type class name. If you want
     to modify it, use the :method:`Symfony\\Component\\Form\\FormFactoryInterface::createNamed` method.
     You can even suppress the name completely by setting it to an empty string.
+    
+        // src/Controller/TaskController.php
+        use App\Form\TaskType;
+        
+        public function new()
+        {
+            $task = ...;
+            $form = $this->container->get('form.factory')->createNamed('customName', TaskType::class, $task);
+            
+            // ...
+        }
 
 Final Thoughts
 --------------
