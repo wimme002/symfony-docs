@@ -5,23 +5,24 @@ Validates that a value is of a specific data type. For example, if a variable
 should be an array, you can use this constraint with the ``array`` type
 option to validate this.
 
-+----------------+---------------------------------------------------------------------+
-| Applies to     | :ref:`property or method <validation-property-target>`              |
-+----------------+---------------------------------------------------------------------+
-| Options        | - :ref:`type <reference-constraint-type-type>`                      |
-|                | - `message`_                                                        |
-|                | - `payload`_                                                        |
-+----------------+---------------------------------------------------------------------+
-| Class          | :class:`Symfony\\Component\\Validator\\Constraints\\Type`           |
-+----------------+---------------------------------------------------------------------+
-| Validator      | :class:`Symfony\\Component\\Validator\\Constraints\\TypeValidator`  |
-+----------------+---------------------------------------------------------------------+
+==========  ===================================================================
+Applies to  :ref:`property or method <validation-property-target>`
+Options     - `groups`_
+            - `message`_
+            - `payload`_
+            - :ref:`type <reference-constraint-type-type>`
+Class       :class:`Symfony\\Component\\Validator\\Constraints\\Type`
+Validator   :class:`Symfony\\Component\\Validator\\Constraints\\TypeValidator`
+==========  ===================================================================
 
 Basic Usage
 -----------
 
-This will check if ``firstName`` is of type ``string`` and that ``age`` is an
-``integer``.
+This will check if ``id`` is an instance of ``Ramsey\Uuid\UuidInterface``,
+``firstName`` is of type ``string`` (using :phpfunction:`is_string` PHP function),
+``age`` is an ``integer`` (using :phpfunction:`is_int` PHP function) and
+``accessCode`` contains either only letters or only digits (using
+:phpfunction:`ctype_alpha` and :phpfunction:`ctype_digit` PHP functions).
 
 .. configuration-block::
 
@@ -35,6 +36,11 @@ This will check if ``firstName`` is of type ``string`` and that ``age`` is an
         class Author
         {
             /**
+             * @Assert\Type("Ramsey\Uuid\UuidInterface")
+             */
+            protected $id;
+
+            /**
              * @Assert\Type("string")
              */
             protected $firstName;
@@ -46,6 +52,11 @@ This will check if ``firstName`` is of type ``string`` and that ``age`` is an
              * )
              */
             protected $age;
+
+            /**
+             * @Assert\Type(type={"alpha", "digit"})
+             */
+            protected $accessCode;
         }
 
     .. code-block:: yaml
@@ -53,6 +64,9 @@ This will check if ``firstName`` is of type ``string`` and that ``age`` is an
         # config/validator/validation.yaml
         App\Entity\Author:
             properties:
+                id:
+                    - Type: Ramsey\Uuid\UuidInterface
+
                 firstName:
                     - Type: string
 
@@ -61,15 +75,24 @@ This will check if ``firstName`` is of type ``string`` and that ``age`` is an
                         type: integer
                         message: The value {{ value }} is not a valid {{ type }}.
 
+                accessCode:
+                    - Type:
+                        type: [alpha, digit]
+
     .. code-block:: xml
 
         <!-- config/validator/validation.xml -->
         <?xml version="1.0" encoding="UTF-8" ?>
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="App\Entity\Author">
+                <property name="id">
+                    <constraint name="Type">
+                        <option name="type">Ramsey\Uuid\UuidInterface</option>
+                    </constraint>
+                </property>
                 <property name="firstName">
                     <constraint name="Type">
                         <option name="type">string</option>
@@ -81,6 +104,14 @@ This will check if ``firstName`` is of type ``string`` and that ``age`` is an
                         <option name="message">The value {{ value }} is not a valid {{ type }}.</option>
                     </constraint>
                 </property>
+                <property name="accessCode">
+                    <constraint name="Type">
+                        <option name="type">
+                            <value>alpha</value>
+                            <value>digit</value>
+                        </option>
+                    </constraint>
+                </property>
             </class>
         </constraint-mapping>
 
@@ -89,34 +120,62 @@ This will check if ``firstName`` is of type ``string`` and that ``age`` is an
         // src/Entity/Author.php
         namespace App\Entity;
 
-        use Symfony\Component\Validator\Mapping\ClassMetadata;
+        use Ramsey\Uuid\UuidInterface;
         use Symfony\Component\Validator\Constraints as Assert;
+        use Symfony\Component\Validator\Mapping\ClassMetadata;
 
         class Author
         {
             public static function loadValidatorMetadata(ClassMetadata $metadata)
             {
+                $metadata->addPropertyConstraint('id', new Assert\Type(UuidInterface::class));
+
                 $metadata->addPropertyConstraint('firstName', new Assert\Type('string'));
 
-                $metadata->addPropertyConstraint('age', new Assert\Type(array(
-                    'type'    => 'integer',
+                $metadata->addPropertyConstraint('age', new Assert\Type([
+                    'type' => 'integer',
                     'message' => 'The value {{ value }} is not a valid {{ type }}.',
-                )));
+                ]));
+
+                $metadata->addPropertyConstraint('accessCode', new Assert\Type([
+                    'type' => ['alpha', 'digit'],
+                ]));
             }
         }
 
 Options
 -------
 
+.. include:: /reference/constraints/_groups-option.rst.inc
+
+message
+~~~~~~~
+
+**type**: ``string`` **default**: ``This value should be of type {{ type }}.``
+
+The message if the underlying data is not of the given type.
+
+You can use the following parameters in this message:
+
+===============  ==============================================================
+Parameter        Description
+===============  ==============================================================
+``{{ type }}``   The expected type
+``{{ value }}``  The current (invalid) value
+===============  ==============================================================
+
+.. include:: /reference/constraints/_payload-option.rst.inc
+
 .. _reference-constraint-type-type:
 
 type
 ~~~~
 
-**type**: ``string`` [:ref:`default option <validation-default-option>`]
+**type**: ``string`` or ``array`` [:ref:`default option <validation-default-option>`]
 
-This required option is the fully qualified class name or one of the PHP
-datatypes as determined by PHP's ``is_()`` functions.
+This required option defines the type or collection of types allowed for the
+given value. Each type is either the FQCN (fully qualified class name) of some
+PHP class/interface or a valid PHP datatype (checked by PHP's ``is_()`` functions):
 
 * :phpfunction:`array <is_array>`
 * :phpfunction:`bool <is_bool>`
@@ -135,7 +194,7 @@ datatypes as determined by PHP's ``is_()`` functions.
 * :phpfunction:`scalar <is_scalar>`
 * :phpfunction:`string <is_string>`
 
-Also, you can use ``ctype_()`` functions from corresponding
+Also, you can use ``ctype_*()`` functions from corresponding
 `built-in PHP extension`_. Consider `a list of ctype functions`_:
 
 * :phpfunction:`alnum <ctype_alnum>`
@@ -153,24 +212,5 @@ Also, you can use ``ctype_()`` functions from corresponding
 Make sure that the proper :phpfunction:`locale <setlocale>` is set before
 using one of these.
 
-message
-~~~~~~~
-
-**type**: ``string`` **default**: ``This value should be of type {{ type }}.``
-
-The message if the underlying data is not of the given type.
-
-You can use the following parameters in this message:
-
-+-----------------+-----------------------------+
-| Parameter       | Description                 |
-+=================+=============================+
-| ``{{ value }}`` | The current (invalid) value |
-+-----------------+-----------------------------+
-| ``{{ type }}``  | The expected type           |
-+-----------------+-----------------------------+
-
-.. include:: /reference/constraints/_payload-option.rst.inc
-
-.. _built-in PHP extension: https://php.net/book.ctype.php
-.. _a list of ctype functions: https://php.net/ref.ctype.php
+.. _built-in PHP extension: https://www.php.net/book.ctype
+.. _a list of ctype functions: https://www.php.net/ref.ctype

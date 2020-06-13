@@ -16,7 +16,7 @@ to apply to all instances of a specific class:
             # ...
             encoders:
                 App\Entity\User:
-                    algorithm: bcrypt
+                    algorithm: auto
                     cost: 12
 
     .. code-block:: xml
@@ -27,12 +27,14 @@ to apply to all instances of a specific class:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd"
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd"
         >
             <config>
                 <!-- ... -->
                 <encoder class="App\Entity\User"
-                    algorithm="bcrypt"
+                    algorithm="auto"
                     cost=12
                 />
             </config>
@@ -43,22 +45,22 @@ to apply to all instances of a specific class:
         // config/packages/security.php
         use App\Entity\User;
 
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
-            'encoders' => array(
-                User::class => array(
-                    'algorithm' => 'bcrypt',
+            'encoders' => [
+                User::class => [
+                    'algorithm' => 'auto',
                     'cost' => 12,
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 Another option is to use a "named" encoder and then select which encoder
 you want to use dynamically.
 
-In the previous example, you've set the ``bcrypt`` algorithm for ``App\Entity\User``.
+In the previous example, you've set the ``auto`` algorithm for ``App\Entity\User``.
 This may be secure enough for a regular user, but what if you want your admins
-to have a stronger algorithm, for example ``bcrypt`` with a higher cost. This can
+to have a stronger algorithm, for example ``auto`` with a higher cost. This can
 be done with named encoders:
 
 .. configuration-block::
@@ -70,7 +72,7 @@ be done with named encoders:
             # ...
             encoders:
                 harsh:
-                    algorithm: bcrypt
+                    algorithm: auto
                     cost: 15
 
     .. code-block:: xml
@@ -81,35 +83,37 @@ be done with named encoders:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd"
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd"
         >
 
             <config>
                 <!-- ... -->
                 <encoder class="harsh"
-                    algorithm="bcrypt"
-                    cost="15" />
+                    algorithm="auto"
+                    cost="15"/>
             </config>
         </srv:container>
 
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
-            'encoders' => array(
-                'harsh' => array(
-                    'algorithm' => 'bcrypt',
+            'encoders' => [
+                'harsh' => [
+                    'algorithm' => 'auto',
                     'cost'      => '15',
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 .. note::
 
     If you are running PHP 7.2+ or have the `libsodium`_ extension installed,
     then the recommended hashing algorithm to use is
-    :ref:`Argon2i <reference-security-argon2i>`.
+    :ref:`Sodium <reference-security-sodium>`.
 
 This creates an encoder named ``harsh``. In order for a ``User`` instance
 to use it, the class must implement
@@ -120,8 +124,8 @@ the name of the encoder to use::
     // src/Acme/UserBundle/Entity/User.php
     namespace Acme\UserBundle\Entity;
 
-    use Symfony\Component\Security\Core\User\UserInterface;
     use Symfony\Component\Security\Core\Encoder\EncoderAwareInterface;
+    use Symfony\Component\Security\Core\User\UserInterface;
 
     class User implements UserInterface, EncoderAwareInterface
     {
@@ -158,13 +162,15 @@ you must register a service for it in order to use it as a named encoder:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd"
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd"
         >
 
             <config>
                 <!-- ... -->
                 <encoder class="app_encoder"
-                    id="App\Security\Encoder\MyCustomPasswordEncoder" />
+                    id="App\Security\Encoder\MyCustomPasswordEncoder"/>
             </config>
         </srv:container>
 
@@ -174,14 +180,14 @@ you must register a service for it in order to use it as a named encoder:
         // ...
         use App\Security\Encoder\MyCustomPasswordEncoder;
 
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
-            'encoders' => array(
-                'app_encoder' => array(
+            'encoders' => [
+                'app_encoder' => [
                     'id' => MyCustomPasswordEncoder::class,
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 This creates an encoder named ``app_encoder`` from a service with the ID
 ``App\Security\Encoder\MyCustomPasswordEncoder``.

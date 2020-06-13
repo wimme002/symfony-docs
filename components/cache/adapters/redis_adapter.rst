@@ -7,7 +7,15 @@
 Redis Cache Adapter
 ===================
 
-This adapter stores the values in-memory using  one (or more) `Redis server`_ instances.
+.. seealso::
+
+    This article explains how to configure the Redis adapter when using the
+    Cache as an independent component in any PHP application. Read the
+    :ref:`Symfony Cache configuration <cache-configuration-with-frameworkbundle>`
+    article if you are using it in a Symfony application.
+
+This adapter stores the values in-memory using one (or more) `Redis server`_ instances.
+
 Unlike the :ref:`APCu adapter <apcu-adapter>`, and similarly to the
 :ref:`Memcached adapter <memcached-adapter>`, it is not limited to the current server's
 shared memory; you can store contents independent of your PHP environment. The ability
@@ -53,8 +61,8 @@ helper method allows creating and configuring the Redis client class instance us
         'redis://localhost'
     );
 
-The DSN can specify either an IP/host (and an optional port) or a socket path, as well as a user
-and password and a database index.
+The DSN can specify either an IP/host (and an optional port) or a socket path, as well as a
+password and a database index.
 
 .. note::
 
@@ -62,7 +70,7 @@ and password and a database index.
 
     .. code-block:: text
 
-        redis://[user:pass@][ip|host|socket[:port]][/db-index]
+        redis://[pass@][ip|host|socket[:port]][/db-index]
 
 Below are common examples of valid DSNs showing a combination of available values::
 
@@ -74,11 +82,30 @@ Below are common examples of valid DSNs showing a combination of available value
     // host "my.server.com" and port "6379" and database index "20"
     RedisAdapter::createConnection('redis://my.server.com:6379/20');
 
-    // host "localhost" and SASL use "rmf" and pass "abcdef"
-    RedisAdapter::createConnection('redis://rmf:abcdef@localhost');
+    // host "localhost", auth "abcdef" and timeout 5 seconds
+    RedisAdapter::createConnection('redis://abcdef@localhost?timeout=5');
 
-    // socket "/var/run/redis.sock" and SASL user "user1" and pass "bad-pass"
-    RedisAdapter::createConnection('redis://user1:bad-pass@/var/run/redis.sock');
+    // socket "/var/run/redis.sock" and auth "bad-pass"
+    RedisAdapter::createConnection('redis://bad-pass@/var/run/redis.sock');
+
+    // a single DSN can define multiple servers using the following syntax:
+    // host[hostname-or-IP:port] (where port is optional). Sockets must include a trailing ':'
+    RedisAdapter::createConnection(
+        'redis:?host[localhost]&host[localhost:6379]&host[/var/run/redis.sock:]&auth=my-password&redis_cluster=1'
+    );
+
+`Redis Sentinel`_, which provides high availability for Redis, is also supported
+when using the Predis library. Use the ``redis_sentinel`` parameter to set the
+name of your service group::
+
+    RedisAdapter::createConnection(
+        'redis:?host[redis1:26379]&host[redis2:26379]&host[redis3:26379]&redis_sentinel=mymaster'
+    );
+
+.. note::
+
+    See the :class:`Symfony\\Component\\Cache\\Traits\\RedisTrait` for more options
+    you can pass as DSN parameters.
 
 Configure the Options
 ---------------------
@@ -95,7 +122,7 @@ array of ``key => value`` pairs representing option names and their respective v
         'redis://localhost:6379',
 
         // associative array of configuration options
-        array(
+        [
             'compression' => true,
             'lazy' => false,
             'persistent' => 0,
@@ -104,7 +131,7 @@ array of ``key => value`` pairs representing option names and their respective v
             'timeout' => 30,
             'read_timeout' => 0,
             'retry_interval' => 0,
-         )
+        ]
 
     );
 
@@ -161,3 +188,4 @@ Available Options
 .. _`Predis`: https://packagist.org/packages/predis/predis
 .. _`Predis Connection Parameters`: https://github.com/nrk/predis/wiki/Connection-Parameters#list-of-connection-parameters
 .. _`TCP-keepalive`: https://redis.io/topics/clients#tcp-keepalive
+.. _`Redis Sentinel`: https://redis.io/topics/sentinel

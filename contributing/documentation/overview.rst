@@ -65,9 +65,9 @@ Let's imagine that you want to improve the Setup guide. In order to make your
 changes, follow these steps:
 
 **Step 1.** Go to the official Symfony documentation repository located at
-`github.com/symfony/symfony-docs`_ and click on the **Fork** button to `fork the
-repository`_ to your personal account. This is only needed the first time you
-contribute to Symfony.
+`github.com/symfony/symfony-docs`_ and click on the **Fork** button to
+`fork the repository`_ to your personal account. This is only needed the first
+time you contribute to Symfony.
 
 **Step 2.** **Clone** the forked repository to your local machine (this example
 uses the ``projects/symfony-docs/`` directory to store the documentation; change
@@ -121,7 +121,7 @@ branch of the ``upstream`` remote, which is the original Symfony Docs repository
 Fixes should always be based on the **oldest maintained branch** which contains
 the error. Nowadays this is the ``3.4`` branch. If you are instead documenting a
 new feature, switch to the first Symfony version that included it, e.g.
-``upstream/3.1``. Not sure? That's ok! Just use the ``upstream/master`` branch.
+``upstream/3.1``. Not sure? That's OK! Just use the ``upstream/master`` branch.
 
 **Step 5.** Now make your changes in the documentation. Add, tweak, reword and
 even remove any content and do your best to comply with the
@@ -249,8 +249,22 @@ GitHub, click on the **Show all checks** link and finally, click on the
 Build the Documentation Locally
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Alternatively you can build the documentation on your own computer for testing
-purposes following these steps:
+If you have Docker installed on your machine, run these commands to build the
+docs:
+
+.. code-block:: terminal
+
+    # build the image...
+    $ docker build . -t symfony-docs
+
+    # ...and start the local web server
+    # (if it's already in use, change the '8080' port by any other port)
+    $ docker run --rm -p 8080:80 symfony-docs
+
+You can now read the docs at ``http://127.0.0.1:8080`` (if you use a virtual
+machine, browse its IP instead of localhost; e.g. ``http://192.168.99.100:8080``).
+
+If you don't use Docker, follow these steps to build the docs locally:
 
 #. Install `pip`_ as explained in the `pip installation`_ article;
 
@@ -278,7 +292,7 @@ Why Do my Changes Take so Long to Be Reviewed and/or Merged?
 
 Please be patient. It can take up to several days before your pull request can
 be fully reviewed. After merging the changes, it could take again several hours
-before your changes appear on the symfony.com website.
+before your changes appear on the Symfony website.
 
 Why Should I Use the Oldest Maintained Branch Instead of the Master Branch?
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -319,16 +333,15 @@ your proposal after you put all that hard work into making the changes. We
 definitely don't want you to waste your time!
 
 .. _`github.com/symfony/symfony-docs`: https://github.com/symfony/symfony-docs
-.. _`reStructuredText`: http://docutils.sourceforge.net/rst.html
+.. _`reStructuredText`: https://docutils.sourceforge.io/rst.html
 .. _`GitHub`: https://github.com/
-.. _`fork the repository`: https://help.github.com/articles/fork-a-repo
+.. _`fork the repository`: https://help.github.com/github/getting-started-with-github/fork-a-repo
 .. _`Symfony Documentation Contributors`: https://symfony.com/contributors/doc
 .. _`SymfonyConnect`: https://connect.symfony.com/
 .. _`Symfony Documentation Badge`: https://connect.symfony.com/badge/36/symfony-documentation-contributor
-.. _`sync your fork`: https://help.github.com/articles/syncing-a-fork
 .. _`SymfonyCloud`: https://symfony.com/cloud
-.. _`roadmap`: https://symfony.com/roadmap
+.. _`roadmap`: https://symfony.com/releases
 .. _`pip`: https://pip.pypa.io/en/stable/
 .. _`pip installation`: https://pip.pypa.io/en/stable/installing/
-.. _`Sphinx`: http://sphinx-doc.org/
+.. _`Sphinx`: https://www.sphinx-doc.org/
 .. _`Sphinx Extensions for PHP and Symfony`: https://github.com/fabpot/sphinx-php

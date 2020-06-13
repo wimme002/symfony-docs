@@ -59,7 +59,7 @@ My App Lives under a Subdirectory
 ---------------------------------
 
 If your app does not live at the root of your web server (i.e. it lives under a subdirectory,
-like ``/myAppSubdir``), you need to configure that when calling ``Encore.setPublicPrefix()``:
+like ``/myAppSubdir``), you will need to configure that when calling ``Encore.setPublicPath()``:
 
 .. code-block:: diff
 
@@ -74,7 +74,7 @@ like ``/myAppSubdir``), you need to configure that when calling ``Encore.setPubl
     +     .setPublicPath('/myAppSubdir/build')
 
     +     // this is now needed so that your manifest.json keys are still `build/foo.js`
-    +     // (which is a file that's used by Symfony's asset function)
+    +     // (which is a file that's used by Symfony's `asset()` function)
     +     .setManifestKeyPrefix('build')
     ;
 
@@ -92,7 +92,7 @@ or ``jQuery`` to be a global variable. But, when you use Webpack and ``require('
 no global variables are set.
 
 The fix depends on if the error is happening in your code or inside some third-party
-code that you're using. See :doc:`/frontend/encore/legacy-apps` for the fix.
+code that you're using. See :doc:`/frontend/encore/legacy-applications` for the fix.
 
 Uncaught ReferenceError: webpackJsonp is not defined
 ----------------------------------------------------
@@ -137,3 +137,34 @@ Babel. But, you can change that via the ``configureBabel()`` method. See
 :doc:`/frontend/encore/babel` for details.
 
 .. _`rsync`: https://rsync.samba.org/
+
+How Do I Integrate my Encore Configuration with my IDE?
+-------------------------------------------------------
+
+`Webpack integration in PhpStorm`_ and other IDEs makes your development more
+productive (for example by resolving aliases). However, you may face this error:
+
+.. code-block:: text
+
+    Encore.setOutputPath() cannot be called yet because the runtime environment
+    doesn't appear to be configured. Make sure you're using the encore executable
+    or call Encore.configureRuntimeEnvironment() first if you're purposely not
+    calling Encore directly.
+
+It fails because the Encore Runtime Environment is only configured when you are
+running it (e.g. when executing ``yarn encore dev``). Fix this issue calling to
+``Encore.isRuntimeEnvironmentConfigured()`` and
+``Encore.configureRuntimeEnvironment()`` methods:
+
+.. code-block:: javascript
+
+    // webpack.config.js
+    const Encore = require('@symfony/webpack-encore')
+
+    if (!Encore.isRuntimeEnvironmentConfigured()) {
+        Encore.configureRuntimeEnvironment(process.env.NODE_ENV || 'dev');
+    }
+
+    // ... the rest of the Encore configuration
+
+.. _`Webpack integration in PhpStorm`: https://www.jetbrains.com/help/phpstorm/using-webpack.html

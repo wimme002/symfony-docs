@@ -4,7 +4,12 @@
 How to Configure Monolog to Email Errors
 ========================================
 
-Monolog_ can be configured to send an email when an error occurs with an
+.. caution::
+
+    This feature is not compatible yet with the new :doc:`Symfony mailer </mailer>`,
+    so it requires using SwiftMailer.
+
+`Monolog`_ can be configured to send an email when an error occurs within an
 application. The configuration for this requires a few nested handlers
 in order to avoid receiving too many emails. This configuration looks
 complicated at first but each handler is fairly straightforward when
@@ -48,8 +53,8 @@ it is broken down.
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:monolog="http://symfony.com/schema/dic/monolog"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
-                http://symfony.com/schema/dic/monolog http://symfony.com/schema/dic/monolog/monolog-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/monolog https://symfony.com/schema/dic/monolog/monolog-1.0.xsd">
 
             <monolog:config>
                 <!--
@@ -94,36 +99,36 @@ it is broken down.
     .. code-block:: php
 
         // config/packages/prod/monolog.php
-        $container->loadFromExtension('monolog', array(
-            'handlers' => array(
-                'main' => array(
+        $container->loadFromExtension('monolog', [
+            'handlers' => [
+                'main' => [
                     'type'         => 'fingers_crossed',
                     // 500 errors are logged at the critical level
                     'action_level' => 'critical',
                     // to also log 400 level errors (but not 404's):
                     // 'action_level' => 'error',
-                    // 'excluded_404s' => array(
+                    // 'excluded_404s' => [
                     //     '^/',
-                    // ),
+                    // ],
                     'handler'      => 'deduplicated',
-                ),
-                'deduplicated' => array(
+                ],
+                'deduplicated' => [
                     'type'    => 'deduplication',
                     'handler' => 'swift',
-                ),
-                'swift' => array(
+                ],
+                'swift' => [
                     'type'         => 'swift_mailer',
                     'from_email'   => 'error@example.com',
                     'to_email'     => 'error@example.com',
                     // or a list of recipients
-                    // 'to_email'   => array('dev1@example.com', 'dev2@example.com', ...),
+                    // 'to_email'   => ['dev1@example.com', 'dev2@example.com', ...],
                     'subject'      => 'An Error Occurred! %%message%%',
                     'level'        => 'debug',
                     'formatter'    => 'monolog.formatter.html',
                     'content_type' => 'text/html',
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 The ``main`` handler is a ``fingers_crossed`` handler which means that
 it is only triggered when the action level, in this case ``critical`` is reached.
@@ -138,8 +143,8 @@ is then passed onto the ``deduplicated`` handler.
     set the ``action_level`` to ``error`` instead of ``critical``. See the
     code above for an example.
 
-The ``deduplicated`` handler keeps all the messages for a request and
-then passes them onto the nested handler in one go, but only if the records are
+The ``deduplicated`` handler keeps all the messages for a request and then
+passes them onto the nested handler in one go, but only if the records are
 unique over a given period of time (60 seconds by default). If the records are
 duplicates they are discarded. Adding this handler reduces the amount of
 notifications to a manageable level, specially in critical failure scenarios.
@@ -167,20 +172,22 @@ You can adjust the time period using the ``time`` option:
         <monolog:handler name="deduplicated"
             type="deduplication"
             time="10"
-            handler="swift" />
+            handler="swift"/>
 
     .. code-block:: php
 
         // config/packages/prod/monolog.php
-        $container->loadFromExtension('monolog', array(
-            'handlers' => array(
+        $container->loadFromExtension('monolog', [
+            'handlers' => [
                 // ...
-                'deduplicated' => array(
+                'deduplicated' => [
                     'type'    => 'deduplication',
                     // the time in seconds during which duplicate entries are discarded (default: 60)
                     'time' => 10,
                     'handler' => 'swift',
-                 )
+                ],
+            ],
+        ]);
 
 The messages are then passed to the ``swift`` handler. This is the handler that
 actually deals with emailing you the error. The settings for this are
@@ -212,12 +219,12 @@ get logged on the server as well as the emails being sent:
                     type:    deduplication
                     handler: swift
                 swift:
-                    type:       swift_mailer
-                    from_email: 'error@example.com'
-                    to_email:   'error@example.com'
-                    subject:    'An Error Occurred! %%message%%'
-                    level:      debug
-                    formatter:  monolog.formatter.html
+                    type:         swift_mailer
+                    from_email:   'error@example.com'
+                    to_email:     'error@example.com'
+                    subject:      'An Error Occurred! %%message%%'
+                    level:        debug
+                    formatter:    monolog.formatter.html
                     content_type: text/html
 
     .. code-block:: xml
@@ -227,8 +234,8 @@ get logged on the server as well as the emails being sent:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:monolog="http://symfony.com/schema/dic/monolog"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
-                http://symfony.com/schema/dic/monolog http://symfony.com/schema/dic/monolog/monolog-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/monolog https://symfony.com/schema/dic/monolog/monolog-1.0.xsd">
 
             <monolog:config>
                 <monolog:handler
@@ -278,39 +285,39 @@ get logged on the server as well as the emails being sent:
     .. code-block:: php
 
         // config/packages/prod/monolog.php
-        $container->loadFromExtension('monolog', array(
-            'handlers' => array(
-                'main' => array(
+        $container->loadFromExtension('monolog', [
+            'handlers' => [
+                'main' => [
                     'type'         => 'fingers_crossed',
                     'action_level' => 'critical',
                     'handler'      => 'grouped',
-                ),
-                'grouped' => array(
+                ],
+                'grouped' => [
                     'type'    => 'group',
-                    'members' => array('streamed', 'deduplicated'),
-                ),
-                'streamed'  => array(
+                    'members' => ['streamed', 'deduplicated'],
+                ],
+                'streamed'  => [
                     'type'  => 'stream',
                     'path'  => '%kernel.logs_dir%/%kernel.environment%.log',
                     'level' => 'debug',
-                ),
-                'deduplicated' => array(
+                ],
+                'deduplicated' => [
                     'type'     => 'deduplication',
                     'handler'  => 'swift',
-                ),
-                'swift' => array(
+                ],
+                'swift' => [
                     'type'         => 'swift_mailer',
                     'from_email'   => 'error@example.com',
                     'to_email'     => 'error@example.com',
                     // or a list of recipients
-                    // 'to_email'   => array('dev1@example.com', 'dev2@example.com', ...),
+                    // 'to_email'   => ['dev1@example.com', 'dev2@example.com', ...],
                     'subject'      => 'An Error Occurred! %%message%%',
                     'level'        => 'debug',
                     'formatter'    => 'monolog.formatter.html',
                     'content_type' => 'text/html',
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 This uses the ``group`` handler to send the messages to the two
 group members, the ``deduplicated`` and the ``stream`` handlers. The messages will

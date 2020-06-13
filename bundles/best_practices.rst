@@ -4,10 +4,10 @@
 Best Practices for Reusable Bundles
 ===================================
 
-This article is all about how to structure your **reusable bundles** so that
-they're easy to configure and extend. Reusable bundles are those meant to be
-shared privately across many company projects or publicly so any Symfony project
-can install them.
+This article is all about how to structure your **reusable bundles** to be
+configurable and extendable. Reusable bundles are those meant to be shared
+privately across many company projects or publicly so any Symfony project can
+install them.
 
 .. index::
    pair: Bundle; Naming conventions
@@ -26,7 +26,7 @@ A namespace becomes a bundle as soon as you add a bundle class to it. The
 bundle class name must follow these rules:
 
 * Use only alphanumeric characters and underscores;
-* Use a StudlyCaps name (i.e. camelCase with the first letter uppercased);
+* Use a StudlyCaps name (i.e. camelCase with an uppercase first letter);
 * Use a descriptive and short name (no more than two words);
 * Prefix the name with the concatenation of the vendor (and optionally the
   category namespaces);
@@ -181,7 +181,7 @@ of Symfony and the latest beta release:
 .. code-block:: yaml
 
     language: php
-    sudo: false
+
     cache:
         directories:
             - $HOME/.composer/cache/files
@@ -197,12 +197,11 @@ of Symfony and the latest beta release:
         include:
               # Minimum supported dependencies with the latest and oldest PHP version
             - php: 7.2
-              env: COMPOSER_FLAGS="--prefer-stable --prefer-lowest" SYMFONY_DEPRECATIONS_HELPER="weak_vendors"
-            - php: 7.0
-              env: COMPOSER_FLAGS="--prefer-stable --prefer-lowest" SYMFONY_DEPRECATIONS_HELPER="weak_vendors"
+              env: COMPOSER_FLAGS="--prefer-stable --prefer-lowest" SYMFONY_DEPRECATIONS_HELPER="max[self]=0"
+            - php: 7.1
+              env: COMPOSER_FLAGS="--prefer-stable --prefer-lowest" SYMFONY_DEPRECATIONS_HELPER="max[self]=0"
 
               # Test the latest stable release
-            - php: 7.0
             - php: 7.1
             - php: 7.2
               env: COVERAGE=true PHPUNIT_FLAGS="-v --coverage-text"
@@ -228,8 +227,6 @@ of Symfony and the latest beta release:
         - if ! [ -v "$DEPENDENCIES" ]; then composer require --no-update ${DEPENDENCIES}; fi;
 
     install:
-        # To be removed when this issue will be resolved: https://github.com/composer/composer/issues/5355
-        - if [[ "$COMPOSER_FLAGS" == *"--prefer-lowest"* ]]; then composer update --prefer-dist --no-interaction --prefer-stable --quiet; fi
         - composer update ${COMPOSER_FLAGS} --prefer-dist --no-interaction
         - ./vendor/bin/simple-phpunit install
 
@@ -246,11 +243,11 @@ Installation
 ------------
 
 Bundles should set ``"type": "symfony-bundle"`` in their ``composer.json`` file.
-With this, :doc:`Symfony Flex </setup/flex>` will be able to automatically
+With this, :ref:`Symfony Flex <symfony-flex>` will be able to automatically
 enable your bundle when it's installed.
 
 If your bundle requires any setup (e.g. configuration, new files, changes to
-`.gitignore`, etc), then you should create a `Symfony Flex recipe`_.
+``.gitignore``, etc), then you should create a `Symfony Flex recipe`_.
 
 Documentation
 -------------
@@ -263,7 +260,7 @@ The index file (for example ``Resources/doc/index.rst`` or
 ``Resources/doc/index.md``) is the only mandatory file and must be the entry
 point for the documentation. The
 :doc:`reStructuredText (rST) </contributing/documentation/format>` is the format
-used to render the documentation on symfony.com.
+used to render the documentation on the Symfony website.
 
 Installation Instructions
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -277,6 +274,10 @@ following standardized instructions in your ``README.md`` file.
 
         Installation
         ============
+
+        Make sure Composer is installed globally, as explained in the
+        [installation chapter](https://getcomposer.org/doc/00-intro.md)
+        of the Composer documentation.
 
         Applications that use Symfony Flex
         ----------------------------------
@@ -299,34 +300,18 @@ following standardized instructions in your ``README.md`` file.
         $ composer require <package-name>
         ```
 
-        This command requires you to have Composer installed globally, as explained
-        in the [installation chapter](https://getcomposer.org/doc/00-intro.md)
-        of the Composer documentation.
-
         ### Step 2: Enable the Bundle
 
         Then, enable the bundle by adding it to the list of registered bundles
-        in the `app/AppKernel.php` file of your project:
+        in the `config/bundles.php` file of your project:
 
         ```php
-        <?php
-        // app/AppKernel.php
+        // config/bundles.php
 
-        // ...
-        class AppKernel extends Kernel
-        {
-            public function registerBundles()
-            {
-                $bundles = array(
-                    // ...
-                    new <vendor>\<bundle-name>\<bundle-long-name>(),
-                );
-
-                // ...
-            }
-
+        return [
             // ...
-        }
+            <vendor>\<bundle-name>\<bundle-long-name>::class => ['all' => true],
+        ];
         ```
 
     .. code-block:: rst
@@ -334,7 +319,9 @@ following standardized instructions in your ``README.md`` file.
         Installation
         ============
 
-        Applications that use Symfony Flex
+        Make sure Composer is installed globally, as explained in the
+        `installation chapter`_ of the Composer documentation.
+
         ----------------------------------
 
         Open a command console, enter your project directory and execute:
@@ -356,36 +343,17 @@ following standardized instructions in your ``README.md`` file.
 
             $ composer require <package-name>
 
-        This command requires you to have Composer installed globally, as explained
-        in the `installation chapter`_ of the Composer documentation.
-
         Step 2: Enable the Bundle
         ~~~~~~~~~~~~~~~~~~~~~~~~~
 
         Then, enable the bundle by adding it to the list of registered bundles
-        in the ``app/AppKernel.php`` file of your project:
+        in the ``config/bundles.php`` file of your project::
 
-        .. code-block:: php
-
-            <?php
-            // app/AppKernel.php
-
-            // ...
-            class AppKernel extends Kernel
-            {
-                public function registerBundles()
-                {
-                    $bundles = array(
-                        // ...
-
-                        new <vendor>\<bundle-name>\<bundle-long-name>(),
-                    );
-
-                    // ...
-                }
-
+            // config/bundles.php
+            return [
                 // ...
-            }
+                <vendor>\<bundle-name>\<bundle-long-name>::class => ['all' => true],
+            ];
 
         .. _`installation chapter`: https://getcomposer.org/doc/00-intro.md
 
@@ -450,7 +418,7 @@ The end user can provide values in any configuration file:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <parameters>
                 <parameter key="acme_blog.author.email">fabien@example.com</parameter>
@@ -479,8 +447,11 @@ Bundles must be versioned following the `Semantic Versioning Standard`_.
 Services
 --------
 
-If the bundle defines services, they must be prefixed with the bundle alias.
-For example, AcmeBlogBundle services must be prefixed with ``acme_blog``.
+If the bundle defines services, they must be prefixed with the bundle alias
+instead of using fully qualified class names like you do in your project
+services. For example, AcmeBlogBundle services must be prefixed with ``acme_blog``.
+The reason is that bundles shouldn't rely on features such as service autowiring
+or autoconfiguration to not impose an overhead when compiling application services.
 
 In addition, services not meant to be used by the application directly, should
 be :ref:`defined as private <container-private-services>`. For public services,
@@ -521,7 +492,12 @@ The ``composer.json`` file should include at least the following metadata:
 
 ``autoload``
     This information is used by Symfony to load the classes of the bundle. It's
-    recommended to use the `PSR-4`_ autoload standard.
+    recommended to use the `PSR-4`_ autoload standard: use the namespace as key,
+    and the location of the bundle's main class (relative to ``composer.json``)
+    as value. For example, if the main class is located in the bundle root
+    directory: ``"autoload": { "psr-4": { "SomeVendor\\BlogBundle\\": "" } }``.
+    If the main class is located in the ``src/`` directory of the bundle:
+    ``"autoload": { "psr-4": { "SomeVendor\\BlogBundle\\": "src/" } }``.
 
 In order to make it easier for developers to find your bundle, register it on
 `Packagist`_, the official repository for Composer packages.
@@ -554,4 +530,4 @@ Learn more
 .. _`choose any license`: https://choosealicense.com/
 .. _`valid license identifier`: https://spdx.org/licenses/
 .. _`Travis CI`: https://travis-ci.org/
-.. _`Travis Cron`: https://docs.travis-ci.com/user/cron-jobs/
+.. _`Travis cron`: https://docs.travis-ci.com/user/cron-jobs/

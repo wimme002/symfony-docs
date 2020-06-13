@@ -27,7 +27,7 @@ create your own encoder that uses the
 
     class YamlEncoder implements EncoderInterface, DecoderInterface
     {
-        public function encode($data, $format, array $context = array())
+        public function encode($data, $format, array $context = [])
         {
             return Yaml::dump($data);
         }
@@ -37,7 +37,7 @@ create your own encoder that uses the
             return 'yaml' === $format;
         }
 
-        public function decode($data, $format, array $context = array())
+        public function decode($data, $format, array $context = [])
         {
             return Yaml::parse($data);
         }
@@ -47,6 +47,14 @@ create your own encoder that uses the
             return 'yaml' === $format;
         }
     }
+
+.. tip::
+
+    If you need access to ``$context`` in your ``supportsDecoding`` or
+    ``supportsEncoding`` method, make sure to implement
+    ``Symfony\Component\Serializer\Encoder\ContextAwareDecoderInterface``
+    or ``Symfony\Component\Serializer\Encoder\ContextAwareEncoderInterface`` accordingly.
+
 
 Registering it in your app
 --------------------------
@@ -61,5 +69,3 @@ that's done automatically!
     to register your class as a service and tag it with ``serializer.encoder``.
 
 Now you'll be able to serialize and deserialize YAML!
-
-.. _tracker: https://github.com/symfony/symfony/issues

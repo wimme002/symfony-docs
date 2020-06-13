@@ -18,7 +18,7 @@ SecurityBundle, DebugBundle, etc.) They are also used to add new features in
 your application via `third-party bundles`_.
 
 Bundles used in your applications must be enabled per
-:doc:`environment </configuration/environments>` in the ``config/bundles.php``
+:ref:`environment <configuration-environments>` in the ``config/bundles.php``
 file::
 
     // config/bundles.php
@@ -37,7 +37,7 @@ file::
 
 .. tip::
 
-    In a default Symfony application that uses :doc:`Symfony Flex </setup/flex>`,
+    In a default Symfony application that uses :ref:`Symfony Flex <symfony-flex>`,
     bundles are enabled/disabled automatically for you when installing/removing
     them, so you don't need to look at or edit this ``bundles.php`` file.
 
@@ -85,8 +85,7 @@ Bundle Directory Structure
 
 The directory structure of a bundle is meant to help to keep code consistent
 between all Symfony bundles. It follows a set of conventions, but is flexible
-to be adjusted if needed. Take a look at AcmeDemoBundle, as it contains some
-of the most common elements of a bundle:
+to be adjusted if needed:
 
 ``Controller/``
     Contains the controllers of the bundle (e.g. ``RandomController.php``).

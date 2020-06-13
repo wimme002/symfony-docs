@@ -13,7 +13,7 @@ Caching on the Shoulders of Giants
 ----------------------------------
 
 With HTTP Caching, you cache the full output of a page (i.e. the response) and bypass
-your application *entirely* on subsequent requests. Of course, caching entire responses
+your application *entirely* on subsequent requests. Caching entire responses
 isn't always possible for highly dynamic sites, or is it? With
 :doc:`Edge Side Includes (ESI) </http_cache/esi>`, you can use the power of HTTP caching
 on only *fragments* of your site.
@@ -99,13 +99,9 @@ caching kernel:
     use App\Kernel;
 
     // ...
-    $env = $_SERVER['APP_ENV'] ?? 'dev';
-    $debug = (bool) ($_SERVER['APP_DEBUG'] ?? ('prod' !== $env));
-    // ...
-    $kernel = new Kernel($env, $debug);
-
+    $kernel = new Kernel($_SERVER['APP_ENV'], (bool) $_SERVER['APP_DEBUG']);
     + // Wrap the default Kernel with the CacheKernel one in 'prod' environment
-    + if ('prod' === $env) {
+    + if ('prod' === $kernel->getEnvironment()) {
     +     $kernel = new CacheKernel($kernel);
     + }
 
@@ -141,12 +137,12 @@ method::
 
     class CacheKernel extends HttpCache
     {
-        protected function getOptions()
+        protected function getOptions(): array
         {
-            return array(
+            return [
                 'default_ttl' => 0,
                 // ...
-            );
+            ];
         }
     }
 
@@ -155,7 +151,21 @@ For a full list of the options and their meaning, see the
 
 When you're in debug mode (the second argument of ``Kernel`` constructor in the
 front controller is ``true``), Symfony automatically adds an ``X-Symfony-Cache``
-header to the response. Use this to get information about cache hits and misses.
+header to the response. You can also use the ``trace_level`` config
+option and set it to either ``none``, ``short`` or ``full`` to
+add this information.
+
+``short`` will add the information for the master request only.
+It's written in a concise way that makes it easy to record the
+information in your server log files. For example, in Apache you can
+use ``%{X-Symfony-Cache}o`` in ``LogFormat`` format statements.
+This information can be used to extract general information about
+cache efficiency of your routes.
+
+.. tip::
+
+    You can change the name of the header used for the trace
+    information using the ``trace_header`` config option.
 
 .. _http-cache-symfony-versus-varnish:
 
@@ -282,7 +292,7 @@ Validation Caching
    single: Cache; Cache-Control header
    single: HTTP headers; Cache-Control
 
-With expiration caching, you simply say "cache for 3600 seconds!". But, when someone
+With expiration caching, you say "cache for 3600 seconds!". But, when someone
 updates cached content, you won't see that content on your site until the cache
 expires.
 
@@ -307,7 +317,7 @@ two things:
   and mutating your application.
 
 * POST requests are generally considered uncacheable, but `they can be cached`_
-  when they include explicit freshness information. However POST caching is not
+  when they include explicit freshness information. However, POST caching is not
   widely implemented, so you should avoid it if possible.
 
 * You should *never* change the state of your application (e.g. update a blog post)
@@ -332,15 +342,27 @@ the most useful ones::
 Additionally, most cache-related HTTP headers can be set via the single
 :method:`Symfony\\Component\\HttpFoundation\\Response::setCache` method::
 
-    // sets cache settings in one call
-    $response->setCache(array(
-        'etag'          => $etag,
-        'last_modified' => $date,
-        'max_age'       => 10,
-        's_maxage'      => 10,
-        'public'        => true,
-        // 'private'    => true,
-    ));
+    // use this method to set several cache settings in one call
+    // (this example lists all the available cache settings)
+    $response->setCache([
+        'must_revalidate'  => false,
+        'no_cache'         => false,
+        'no_store'         => false,
+        'no_transform'     => false,
+        'public'           => true,
+        'private'          => false,
+        'proxy_revalidate' => false,
+        'max_age'          => 600,
+        's_maxage'         => 600,
+        'immutable'        => true,
+        'last_modified'    => new \DateTime(),
+        'etag'             => 'abcdef'
+    ]);
+
+.. versionadded:: 5.1
+
+    The ``must_revalidate``, ``no_cache``, ``no_store``, ``no_transform`` and
+    ``proxy_revalidate`` directives were introduced in Symfony 5.1.
 
 Cache Invalidation
 ------------------
@@ -399,12 +421,11 @@ Learn more
 
     http_cache/*
 
-.. _`Things Caches Do`: http://2ndscale.com/writings/things-caches-do
-.. _`Cache Tutorial`: http://www.mnot.net/cache_docs/
-.. _`Varnish`: https://www.varnish-cache.org/
-.. _`Squid in reverse proxy mode`: http://wiki.squid-cache.org/SquidFaq/ReverseProxy
-.. _`HTTP Bis`: http://tools.ietf.org/wg/httpbis/
+.. _`Things Caches Do`: https://2ndscale.com/writings/things-caches-do
+.. _`Cache Tutorial`: https://www.mnot.net/cache_docs/
+.. _`Varnish`: https://varnish-cache.org/
+.. _`Squid in reverse proxy mode`: https://wiki.squid-cache.org/SquidFaq/ReverseProxy
 .. _`RFC 7234 - Caching`: https://tools.ietf.org/html/rfc7234
 .. _`RFC 7232 - Conditional Requests`: https://tools.ietf.org/html/rfc7232
-.. _`FOSHttpCacheBundle`: http://foshttpcachebundle.readthedocs.org/
+.. _`FOSHttpCacheBundle`: https://foshttpcachebundle.readthedocs.org/
 .. _`they can be cached`: https://tools.ietf.org/html/draft-ietf-httpbis-p2-semantics-20#section-2.3.4

@@ -47,8 +47,8 @@ Start with building two forms for these entities, ``CompanyType`` and ``Customer
     namespace App\Form\Type;
 
     use Symfony\Component\Form\AbstractType;
-    use Symfony\Component\Form\FormBuilderInterface;
     use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use Symfony\Component\Form\FormBuilderInterface;
 
     class CompanyType extends AbstractType
     {
@@ -65,9 +65,9 @@ Start with building two forms for these entities, ``CompanyType`` and ``Customer
     // src/Form/Type/CustomerType.php
     namespace App\Form\Type;
 
-    use Symfony\Component\Form\FormBuilderInterface;
     use Symfony\Component\Form\AbstractType;
     use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use Symfony\Component\Form\FormBuilderInterface;
 
     class CustomerType extends AbstractType
     {
@@ -87,10 +87,10 @@ for that::
     namespace App\Form\Type;
 
     use Symfony\Component\Form\AbstractType;
-    use Symfony\Component\Form\FormBuilderInterface;
-    use Symfony\Component\OptionsResolver\OptionsResolver;
     use Symfony\Component\Form\Extension\Core\Type\TextareaType;
     use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use Symfony\Component\Form\FormBuilderInterface;
+    use Symfony\Component\OptionsResolver\OptionsResolver;
 
     class LocationType extends AbstractType
     {
@@ -105,9 +105,9 @@ for that::
 
         public function configureOptions(OptionsResolver $resolver)
         {
-            $resolver->setDefaults(array(
+            $resolver->setDefaults([
                 'inherit_data' => true,
-            ));
+            ]);
         }
     }
 
@@ -133,9 +133,9 @@ Finally, make this work by adding the location form to your two original forms::
     {
         // ...
 
-        $builder->add('foo', LocationType::class, array(
+        $builder->add('foo', LocationType::class, [
             'data_class' => Company::class,
-        ));
+        ]);
     }
 
 .. code-block:: php
@@ -148,9 +148,9 @@ Finally, make this work by adding the location form to your two original forms::
     {
         // ...
 
-        $builder->add('bar', LocationType::class, array(
+        $builder->add('bar', LocationType::class, [
             'data_class' => Customer::class,
-        ));
+        ]);
     }
 
 That's it! You have extracted duplicated field definitions to a separate

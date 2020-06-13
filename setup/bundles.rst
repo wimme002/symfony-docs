@@ -133,7 +133,6 @@ following recommended configuration as the starting point of your own configurat
 .. code-block:: yaml
 
     language: php
-    sudo: false
     php:
         - 5.3
         - 5.6
@@ -142,7 +141,7 @@ following recommended configuration as the starting point of your own configurat
     matrix:
         include:
             - php: 5.3.3
-              env: COMPOSER_FLAGS='--prefer-lowest --prefer-stable' SYMFONY_DEPRECATIONS_HELPER=weak
+              env: COMPOSER_FLAGS='--prefer-lowest --prefer-stable' SYMFONY_DEPRECATIONS_HELPER=max[total]=999999
             - php: 5.6
               env: SYMFONY_VERSION='2.7.*'
             - php: 5.6

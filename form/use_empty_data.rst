@@ -46,8 +46,8 @@ that constructor with no arguments::
     // src/Form/Type/BlogType.php
 
     // ...
-    use Symfony\Component\Form\AbstractType;
     use App\Entity\Blog;
+    use Symfony\Component\Form\AbstractType;
     use Symfony\Component\OptionsResolver\OptionsResolver;
 
     class BlogType extends AbstractType
@@ -62,9 +62,9 @@ that constructor with no arguments::
 
         public function configureOptions(OptionsResolver $resolver)
         {
-            $resolver->setDefaults(array(
+            $resolver->setDefaults([
                 'empty_data' => new Blog($this->someDependency),
-            ));
+            ]);
         }
     }
 
@@ -75,7 +75,11 @@ The point is, you can set ``empty_data`` to the exact "new" object that you want
 .. tip::
 
     In order to pass arguments to the ``BlogType`` constructor, you'll need to
-    :doc:`register it as a service and tag with form.type </form/form_dependencies>`.
+    :ref:`register the form as a service <service-container-creating-service>`
+    and :doc:`tag it </service_container/tags>` with ``form.type``.
+    If you're using the
+    :ref:`default services.yaml configuration <service-container-services-load-example>`,
+    this is already done for you.
 
 .. _forms-empty-data-closure:
 
@@ -87,15 +91,15 @@ if it is needed.
 
 The closure must accept a ``FormInterface`` instance as the first argument::
 
-    use Symfony\Component\OptionsResolver\OptionsResolver;
     use Symfony\Component\Form\FormInterface;
+    use Symfony\Component\OptionsResolver\OptionsResolver;
     // ...
 
     public function configureOptions(OptionsResolver $resolver)
     {
-        $resolver->setDefaults(array(
+        $resolver->setDefaults([
             'empty_data' => function (FormInterface $form) {
                 return new Blog($form->get('title')->getData());
             },
-        ));
+        ]);
     }

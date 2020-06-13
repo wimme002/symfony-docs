@@ -22,6 +22,7 @@ If you want to have a boolean field, use :doc:`CheckboxType </reference/forms/ty
 |             |                                                                     |
 |             | from the :doc:`FormType </reference/forms/types/form>`:             |
 |             |                                                                     |
+|             | - `attr`_                                                           |
 |             | - `data`_                                                           |
 |             | - `disabled`_                                                       |
 |             | - `empty_data`_                                                     |
@@ -29,16 +30,20 @@ If you want to have a boolean field, use :doc:`CheckboxType </reference/forms/ty
 |             | - `error_mapping`_                                                  |
 |             | - `help`_                                                           |
 |             | - `help_attr`_                                                      |
+|             | - `help_html`_                                                      |
 |             | - `label`_                                                          |
 |             | - `label_attr`_                                                     |
 |             | - `label_format`_                                                   |
 |             | - `mapped`_                                                         |
 |             | - `required`_                                                       |
+|             | - `row_attr`_                                                       |
 +-------------+---------------------------------------------------------------------+
 | Parent type | :doc:`CheckboxType </reference/forms/types/checkbox>`               |
 +-------------+---------------------------------------------------------------------+
 | Class       | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\RadioType` |
 +-------------+---------------------------------------------------------------------+
+
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
 
 Inherited Options
 -----------------
@@ -48,6 +53,8 @@ These options inherit from the :doc:`CheckboxType </reference/forms/types/checkb
 .. include:: /reference/forms/types/options/value.rst.inc
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
+
+.. include:: /reference/forms/types/options/attr.rst.inc
 
 .. include:: /reference/forms/types/options/data.rst.inc
 
@@ -63,6 +70,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
 
+.. include:: /reference/forms/types/options/help_html.rst.inc
+
 .. include:: /reference/forms/types/options/label.rst.inc
 
 .. include:: /reference/forms/types/options/label_attr.rst.inc
@@ -72,6 +81,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 .. include:: /reference/forms/types/options/mapped.rst.inc
 
 .. include:: /reference/forms/types/options/required.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc
 
 Form Variables
 --------------

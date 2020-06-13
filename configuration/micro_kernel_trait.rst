@@ -14,7 +14,7 @@ A Single-File Symfony Application
 Start with a completely empty directory and install these Symfony components
 via Composer:
 
-.. code-block:: bash
+.. code-block:: terminal
 
     $ composer require symfony/config symfony/http-kernel \
       symfony/http-foundation symfony/routing \
@@ -22,13 +22,14 @@ via Composer:
 
 Next, create an ``index.php`` file that defines the kernel class and executes it::
 
+    // index.php
     use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+    use Symfony\Bundle\FrameworkBundle\Routing\Loader\Configurator\RoutingConfigurator;
     use Symfony\Component\Config\Loader\LoaderInterface;
     use Symfony\Component\DependencyInjection\ContainerBuilder;
     use Symfony\Component\HttpFoundation\JsonResponse;
     use Symfony\Component\HttpFoundation\Request;
     use Symfony\Component\HttpKernel\Kernel as BaseKernel;
-    use Symfony\Component\Routing\RouteCollectionBuilder;
 
     require __DIR__.'/vendor/autoload.php';
 
@@ -38,31 +39,31 @@ Next, create an ``index.php`` file that defines the kernel class and executes it
 
         public function registerBundles()
         {
-            return array(
+            return [
                 new Symfony\Bundle\FrameworkBundle\FrameworkBundle()
-            );
+            ];
         }
 
         protected function configureContainer(ContainerBuilder $c, LoaderInterface $loader)
         {
             // PHP equivalent of config/packages/framework.yaml
-            $c->loadFromExtension('framework', array(
+            $c->loadFromExtension('framework', [
                 'secret' => 'S0ME_SECRET'
-            ));
+            ]);
         }
 
-        protected function configureRoutes(RouteCollectionBuilder $routes)
+        protected function configureRoutes(RoutingConfigurator $routes)
         {
             // kernel is a service that points to this class
             // optional 3rd argument is the route name
-            $routes->add('/random/{limit}', 'Kernel::randomNumber');
+            $routes->add('/random/{limit}', 'kernel::randomNumber');
         }
 
         public function randomNumber($limit)
         {
-            return new JsonResponse(array(
+            return new JsonResponse([
                 'number' => random_int(0, $limit),
-            ));
+            ]);
         }
     }
 
@@ -72,15 +73,14 @@ Next, create an ``index.php`` file that defines the kernel class and executes it
     $response->send();
     $kernel->terminate($request, $response);
 
-That's it! To test it, you can start the built-in web server:
+That's it! To test it, start the :doc:`Symfony Local Web Server
+</setup/symfony_server>`:
 
 .. code-block:: terminal
 
-    $ php -S localhost:8000
+    $ symfony server:start
 
-Then see the JSON response in your browser:
-
-    http://localhost:8000/random/10
+Then see the JSON response in your browser: http://localhost:8000/random/10
 
 The Methods of a "Micro" Kernel
 -------------------------------
@@ -97,9 +97,9 @@ that define your bundles, your services and your routes:
     of what you see in a normal ``config/packages/*`` file). You can also register
     services directly in PHP or load external configuration files (shown below).
 
-**configureRoutes(RouteCollectionBuilder $routes)**
+**configureRoutes(RoutingConfigurator $routes)**
     Your job in this method is to add routes to the application. The
-    ``RouteCollectionBuilder`` has methods that make adding routes in PHP more
+    ``RoutingConfigurator`` has methods that make adding routes in PHP more
     fun. You can also load external routing files (shown below).
 
 Advanced Example: Twig, Annotations and the Web Debug Toolbar
@@ -134,10 +134,10 @@ hold the kernel. Now it looks like this::
     namespace App;
 
     use Symfony\Bundle\FrameworkBundle\Kernel\MicroKernelTrait;
+    use Symfony\Bundle\FrameworkBundle\Routing\Loader\Configurator\RoutingConfigurator;
     use Symfony\Component\Config\Loader\LoaderInterface;
     use Symfony\Component\DependencyInjection\ContainerBuilder;
     use Symfony\Component\HttpKernel\Kernel as BaseKernel;
-    use Symfony\Component\Routing\RouteCollectionBuilder;
 
     class Kernel extends BaseKernel
     {
@@ -145,10 +145,10 @@ hold the kernel. Now it looks like this::
 
         public function registerBundles()
         {
-            $bundles = array(
+            $bundles = [
                 new \Symfony\Bundle\FrameworkBundle\FrameworkBundle(),
                 new \Symfony\Bundle\TwigBundle\TwigBundle(),
-            );
+            ];
 
             if ($this->getEnvironment() == 'dev') {
                 $bundles[] = new Symfony\Bundle\WebProfilerBundle\WebProfilerBundle();
@@ -163,14 +163,14 @@ hold the kernel. Now it looks like this::
 
             // configure WebProfilerBundle only if the bundle is enabled
             if (isset($this->bundles['WebProfilerBundle'])) {
-                $c->loadFromExtension('web_profiler', array(
+                $c->loadFromExtension('web_profiler', [
                     'toolbar' => true,
                     'intercept_redirects' => false,
-                ));
+                ]);
             }
         }
 
-        protected function configureRoutes(RouteCollectionBuilder $routes)
+        protected function configureRoutes(RoutingConfigurator $routes)
         {
             // import the WebProfilerRoutes, only if the bundle is enabled
             if (isset($this->bundles['WebProfilerBundle'])) {
@@ -220,23 +220,23 @@ because the configuration started to get bigger:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:framework="http://symfony.com/schema/dic/symfony"
-            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd
-                http://symfony.com/schema/dic/symfony http://symfony.com/schema/dic/symfony/symfony-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/services https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/symfony https://symfony.com/schema/dic/symfony/symfony-1.0.xsd">
 
             <framework:config secret="S0ME_SECRET">
-                <framework:profiler only-exceptions="false" />
+                <framework:profiler only-exceptions="false"/>
             </framework:config>
         </container>
 
     .. code-block:: php
 
         // config/framework.php
-        $container->loadFromExtension('framework', array(
+        $container->loadFromExtension('framework', [
             'secret' => 'S0ME_SECRET',
-            'profiler' => array(
+            'profiler' => [
                 'only_exceptions' => false,
-            ),
-        ));
+            ],
+        ]);
 
 This also loads annotation routes from an ``src/Controller/`` directory, which
 has one file in it::
@@ -256,9 +256,9 @@ has one file in it::
         {
             $number = random_int(0, $limit);
 
-            return $this->render('micro/random.html.twig', array(
+            return $this->render('micro/random.html.twig', [
                 'number' => $number,
-            ));
+            ]);
         }
     }
 
@@ -282,14 +282,13 @@ Finally, you need a front controller to boot and run the application. Create a
 ``public/index.php``::
 
     // public/index.php
-
     use App\Kernel;
     use Doctrine\Common\Annotations\AnnotationRegistry;
     use Symfony\Component\HttpFoundation\Request;
 
     $loader = require __DIR__.'/../vendor/autoload.php';
     // auto-load annotations
-    AnnotationRegistry::registerLoader(array($loader, 'loadClass'));
+    AnnotationRegistry::registerLoader([$loader, 'loadClass']);
 
     $kernel = new Kernel('dev', true);
     $request = Request::createFromGlobals();
@@ -323,13 +322,12 @@ this:
     ├─ composer.json
     └─ composer.lock
 
-As before you can use PHP built-in server:
+As before you can use the :doc:`Symfony Local Web Server
+</setup/symfony_server>`:
 
 .. code-block:: terminal
 
     cd public/
-    $ php -S localhost:8000 -t public/
+    $ symfony server:start
 
-Then see webpage in browser:
-
-    http://localhost:8000/random/10
+Then visit the page in your browser: http://localhost:8000/random/10

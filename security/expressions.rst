@@ -18,7 +18,7 @@ accepts an :class:`Symfony\\Component\\ExpressionLanguage\\Expression` object::
     public function index()
     {
         $this->denyAccessUnlessGranted(new Expression(
-            '"ROLE_ADMIN" in roles or (not is_anonymous() and user.isSuperAdmin())'
+            '"ROLE_ADMIN" in role_names or (not is_anonymous() and user.isSuperAdmin())'
         ));
 
         // ...
@@ -39,11 +39,11 @@ Inside the expression, you have access to a number of variables:
 ``user``
     The user object (or the string ``anon`` if you're not authenticated).
 ``roles``
-    The array of roles the user has, including from the
-    :ref:`role hierarchy <security-role-hierarchy>` but not including the
-    ``IS_AUTHENTICATED_*`` attributes (see the functions below).
+    The array of roles the user has. This array includes any roles granted
+    indirectly via the :ref:`role hierarchy <security-role-hierarchy>` but it
+    does not include the ``IS_AUTHENTICATED_*`` attributes (see the functions below).
 ``object``
-     The object (if any) that's passed as the second argument to ``isGranted()``.
+    The object (if any) that's passed as the second argument to ``isGranted()``.
 ``token``
     The token object.
 ``trust_resolver``
@@ -52,22 +52,24 @@ Inside the expression, you have access to a number of variables:
 
 Additionally, you have access to a number of functions inside the expression:
 
-``is_authenticated``
+``is_authenticated()``
     Returns ``true`` if the user is authenticated via "remember-me" or authenticated
     "fully" - i.e. returns true if the user is "logged in".
-``is_anonymous``
-    Equal to using ``IS_AUTHENTICATED_ANONYMOUSLY`` with the ``isGranted()`` function.
-``is_remember_me``
+``is_anonymous()``
+    Returns ``true`` if the user is anonymous. That is, the firewall confirms that it
+    does not know this user's identity. This is different from ``IS_AUTHENTICATED_ANONYMOUSLY``,
+    which is granted to *all* users, including authenticated ones.
+``is_remember_me()``
     Similar, but not equal to ``IS_AUTHENTICATED_REMEMBERED``, see below.
-``is_fully_authenticated``
-    Similar, but not equal to ``IS_AUTHENTICATED_FULLY``, see below.
-``is_granted``
+``is_fully_authenticated()``
+    Equal to checking if the user has the ``IS_AUTHENTICATED_FULLY`` role.
+``is_granted()``
     Checks if the user has the given permission. Optionally accepts a second argument
     with the object where permission is checked on. It's equivalent to using
     the :doc:`isGranted() method </security/securing_services>` from the authorization
     checker service.
 
-.. sidebar:: ``is_remember_me`` is different than checking ``IS_AUTHENTICATED_REMEMBERED``
+.. sidebar:: ``is_remember_me()`` is different than checking ``IS_AUTHENTICATED_REMEMBERED``
 
     The ``is_remember_me()`` and ``is_fully_authenticated()`` functions are *similar*
     to using ``IS_AUTHENTICATED_REMEMBERED`` and ``IS_AUTHENTICATED_FULLY``
@@ -90,7 +92,7 @@ Additionally, you have access to a number of functions inside the expression:
     Here, ``$access1`` and ``$access2`` will be the same value. Unlike the
     behavior of ``IS_AUTHENTICATED_REMEMBERED`` and ``IS_AUTHENTICATED_FULLY``,
     the ``is_remember_me()`` function *only* returns true if the user is authenticated
-    via a remember-me cookie and ``is_fully_authenticated`` *only* returns
+    via a remember-me cookie and ``is_fully_authenticated()`` *only* returns
     true if the user has actually logged in during this session (i.e. is
     full-fledged).
 

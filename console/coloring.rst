@@ -40,7 +40,7 @@ It is possible to define your own styles using the
     use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
     // ...
-    $outputStyle = new OutputFormatterStyle('red', 'yellow', array('bold', 'blink'));
+    $outputStyle = new OutputFormatterStyle('red', 'yellow', ['bold', 'blink']);
     $output->getFormatter()->setStyle('fire', $outputStyle);
 
     $output->writeln('<fire>foo</>');
@@ -77,9 +77,6 @@ You can also set these colors and options directly inside the tag name::
 Displaying Clickable Links
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-.. versionadded:: 4.3
-    The feature to display clickable links was introduced in Symfony 4.3.
-
 Commands can use the special ``<href>`` tag to display links similar to the
 ``<a>`` elements of web pages::
 
@@ -90,7 +87,7 @@ you can click on the *"Symfony Homepage"* text to open its URL in your default
 browser. Otherwise, you'll see *"Symfony Homepage"* as regular text and the URL
 will be lost.
 
-.. _Cmder: http://cmder.net/
+.. _Cmder: https://cmder.net/
 .. _ConEmu: https://conemu.github.io/
 .. _ANSICON: https://github.com/adoxa/ansicon/releases
 .. _Mintty: https://mintty.github.io/

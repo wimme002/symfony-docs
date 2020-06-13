@@ -1,6 +1,8 @@
 .. index::
    single: Security; Data Permission Voters
 
+.. _security/custom-voter:
+
 How to Use Voters to Check User Permissions
 ===========================================
 
@@ -19,11 +21,12 @@ How Symfony Uses Voters
 In order to use voters, you have to understand how Symfony works with them.
 All voters are called each time you use the ``isGranted()`` method on Symfony's
 authorization checker or call ``denyAccessUnlessGranted()`` in a controller (which
-uses the authorization checker).
+uses the authorization checker), or by
+:ref:`access controls <security-access-control-enforcement-options>`.
 
 Ultimately, Symfony takes the responses from all voters and makes the final
 decision (to allow or deny access to the resource) according to the strategy defined
-in the application, which can be: affirmative, consensus or unanimous.
+in the application, which can be: affirmative, consensus, unanimous or priority.
 
 For more information take a look at
 :ref:`the section about access decision managers <components-security-access-decision-manager>`.
@@ -115,14 +118,14 @@ would look like this::
         const VIEW = 'view';
         const EDIT = 'edit';
 
-        protected function supports($attribute, $subject)
+        protected function supports(string $attribute, $subject)
         {
             // if the attribute isn't one we support, return false
-            if (!in_array($attribute, array(self::VIEW, self::EDIT))) {
+            if (!in_array($attribute, [self::VIEW, self::EDIT])) {
                 return false;
             }
 
-            // only vote on Post objects inside this voter
+            // only vote on `Post` objects
             if (!$subject instanceof Post) {
                 return false;
             }
@@ -130,7 +133,7 @@ would look like this::
             return true;
         }
 
-        protected function voteOnAttribute($attribute, $subject, TokenInterface $token)
+        protected function voteOnAttribute(string $attribute, $subject, TokenInterface $token)
         {
             $user = $token->getUser();
 
@@ -139,7 +142,7 @@ would look like this::
                 return false;
             }
 
-            // you know $subject is a Post object, thanks to supports
+            // you know $subject is a Post object, thanks to `supports()`
             /** @var Post $post */
             $post = $subject;
 
@@ -160,15 +163,13 @@ would look like this::
                 return true;
             }
 
-            // the Post object could have, for example, a method isPrivate()
-            // that checks a boolean $private property
+            // the Post object could have, for example, a method `isPrivate()`
             return !$post->isPrivate();
         }
 
         private function canEdit(Post $post, User $user)
         {
-            // this assumes that the data object has a getOwner() method
-            // to get the entity of the user who owns this data object
+            // this assumes that the Post object has a `getOwner()` method
             return $user === $post->getOwner();
         }
     }
@@ -177,7 +178,7 @@ That's it! The voter is done! Next, :ref:`configure it <declaring-the-voter-as-a
 
 To recap, here's what's expected from the two abstract methods:
 
-``Voter::supports($attribute, $subject)``
+``Voter::supports(string $attribute, $subject)``
     When ``isGranted()`` (or ``denyAccessUnlessGranted()``) is called, the first
     argument is passed here as ``$attribute`` (e.g. ``ROLE_USER``, ``edit``) and
     the second argument (if any) is passed as ``$subject`` (e.g. ``null``, a ``Post``
@@ -187,7 +188,7 @@ To recap, here's what's expected from the two abstract methods:
     return ``true`` if the attribute is ``view`` or ``edit`` and if the object is
     a ``Post`` instance.
 
-``voteOnAttribute($attribute, $subject, TokenInterface $token)``
+``voteOnAttribute(string $attribute, $subject, TokenInterface $token)``
     If you return ``true`` from ``supports()``, then this method is called. Your
     job is simple: return ``true`` to allow access and ``false`` to deny access.
     The ``$token`` can be used to find the current user object (if any). In this
@@ -230,7 +231,7 @@ with ``ROLE_SUPER_ADMIN``::
             $this->security = $security;
         }
 
-        protected function voteOnAttribute($attribute, $subject, TokenInterface $token)
+        protected function voteOnAttribute(string $attribute, $subject, TokenInterface $token)
         {
             // ...
 
@@ -258,9 +259,8 @@ voters vote for one action and object. For instance, suppose you have one voter 
 checks if the user is a member of the site and a second one that checks if the user
 is older than 18.
 
-To handle these cases, the access decision manager uses an access decision
-strategy. You can configure this to suit your needs. There are three
-strategies available:
+To handle these cases, the access decision manager uses a "strategy" which you can configure.
+There are three strategies available:
 
 ``affirmative`` (default)
     This grants access as soon as there is *one* voter granting access;
@@ -271,7 +271,15 @@ strategies available:
 ``unanimous``
     This only grants access if there is no voter denying access. If all voters
     abstained from voting, the decision is based on the ``allow_if_all_abstain``
-    config option (which defaults to ``false``).
+    config option (which defaults to ``false``);
+
+``priority``
+    This grants or denies access by the first voter that does not abstain,
+    based on their service priority;
+
+    .. versionadded:: 5.1
+
+        The ``priority`` version strategy was introduced in Symfony 5.1.
 
 In the above scenario, both voters should grant access in order to grant access
 to the user to read the post. In this case, the default strategy is no longer
@@ -296,20 +304,22 @@ security configuration:
             xmlns:srv="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd"
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd"
         >
 
             <config>
-                <access-decision-manager strategy="unanimous" allow-if-all-abstain="false"  />
+                <access-decision-manager strategy="unanimous" allow-if-all-abstain="false"/>
             </config>
         </srv:container>
 
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
-            'access_decision_manager' => array(
+        $container->loadFromExtension('security', [
+            'access_decision_manager' => [
                 'strategy' => 'unanimous',
                 'allow_if_all_abstain' => false,
-            ),
-        ));
+            ],
+        ]);

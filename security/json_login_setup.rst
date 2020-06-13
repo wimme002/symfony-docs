@@ -17,7 +17,7 @@ First, enable the JSON login under your firewall:
 
             firewalls:
                 main:
-                    anonymous: ~
+                    anonymous: lazy
                     json_login:
                         check_path: /login
 
@@ -29,12 +29,14 @@ First, enable the JSON login under your firewall:
             xmlns:srv="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <firewall name="main">
-                    <anonymous />
-                    <json-login check-path="/login" />
+                    <anonymous lazy="true"/>
+                    <json-login check-path="/login"/>
                 </firewall>
             </config>
         </srv:container>
@@ -42,16 +44,16 @@ First, enable the JSON login under your firewall:
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
-            'firewalls' => array(
-                'main' => array(
-                    'anonymous'  => null,
-                    'json_login' => array(
+        $container->loadFromExtension('security', [
+            'firewalls' => [
+                'main' => [
+                    'anonymous'  => 'lazy',
+                    'json_login' => [
                         'check_path' => '/login',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 .. tip::
 
@@ -74,16 +76,16 @@ The next step is to configure a route in your app matching this path:
         class SecurityController extends AbstractController
         {
             /**
-             * @Route("/login", name="login")
+             * @Route("/login", name="login", methods={"POST"})
              */
             public function login(Request $request)
             {
                 $user = $this->getUser();
 
-                return $this->json(array(
+                return $this->json([
                     'username' => $user->getUsername(),
                     'roles' => $user->getRoles(),
-                ));
+                ]);
             }
         }
 
@@ -93,6 +95,7 @@ The next step is to configure a route in your app matching this path:
         login:
             path:       /login
             controller: App\Controller\SecurityController::login
+            methods: POST
 
     .. code-block:: xml
 
@@ -101,25 +104,23 @@ The next step is to configure a route in your app matching this path:
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/routing
-                http://symfony.com/schema/routing/routing-1.0.xsd">
+                https://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="login" path="/login">
-                <default key="_controller">App\Controller\SecurityController::login</default>
-            </route>
+            <route id="login" path="/login" controller="App\Controller\SecurityController::login" methods="POST"/>
         </routes>
 
     .. code-block:: php
 
         // config/routes.php
-        use Symfony\Component\Routing\RouteCollection;
-        use Symfony\Component\Routing\Route;
+        use App\Controller\SecurityController;
+        use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-        $routes = new RouteCollection();
-        $routes->add('login', new Route('/login', array(
-            '_controller' => 'App\Controller\SecurityController::login',
-        )));
-
-        return $routes;
+        return function (RoutingConfigurator $routes) {
+            $routes->add('login', '/login')
+                ->controller([SecurityController::class, 'login'])
+                ->methods(['POST'])
+            ;
+        };
 
 Now, when you make a ``POST`` request, with the header ``Content-Type: application/json``,
 to the ``/login`` URL with the following JSON document as the body, the security
@@ -164,7 +165,7 @@ The security configuration should be:
 
             firewalls:
                 main:
-                    anonymous: ~
+                    anonymous: lazy
                     json_login:
                         check_path:    login
                         username_path: security.credentials.login
@@ -178,14 +179,16 @@ The security configuration should be:
             xmlns:srv="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <firewall name="main">
-                    <anonymous />
+                    <anonymous lazy="true"/>
                     <json-login check-path="login"
-                                username-path="security.credentials.login"
-                                password-path="security.credentials.password" />
+                        username-path="security.credentials.login"
+                        password-path="security.credentials.password"/>
                 </firewall>
             </config>
         </srv:container>
@@ -193,15 +196,15 @@ The security configuration should be:
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
-            'firewalls' => array(
-                'main' => array(
-                    'anonymous'  => null,
-                    'json_login' => array(
+        $container->loadFromExtension('security', [
+            'firewalls' => [
+                'main' => [
+                    'anonymous'  => 'lazy',
+                    'json_login' => [
                         'check_path' => 'login',
                         'username_path' => 'security.credentials.login',
                         'password_path' => 'security.credentials.password',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);

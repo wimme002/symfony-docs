@@ -13,15 +13,16 @@ How to Use Doctrine DBAL
 
 The `Doctrine`_ Database Abstraction Layer (DBAL) is an abstraction layer that
 sits on top of `PDO`_ and offers an intuitive and flexible API for communicating
-with the most popular relational databases. In other words, the DBAL library
-makes it easy to execute queries and perform other database actions.
+with the most popular relational databases. The DBAL library allows you to write
+queries independently of your ORM models, e.g. for building reports or direct
+data manipulations.
 
 .. tip::
 
     Read the official Doctrine `DBAL Documentation`_ to learn all the details
     and capabilities of Doctrine's DBAL library.
 
-First, install the Doctrine ORM pack:
+First, install the Doctrine ``orm`` :ref:`Symfony pack <symfony-packs>`:
 
 .. code-block:: terminal
 
@@ -82,14 +83,14 @@ mapping types, read Doctrine's `Custom Mapping Types`_ section of their document
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:doctrine="http://symfony.com/schema/dic/doctrine"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/doctrine
-                http://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
+                https://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
 
             <doctrine:config>
                 <doctrine:dbal>
-                    <doctrine:type name="custom_first" class="App\Type\CustomFirst" />
-                    <doctrine:type name="custom_second" class="App\Type\CustomSecond" />
+                    <doctrine:type name="custom_first" class="App\Type\CustomFirst"/>
+                    <doctrine:type name="custom_second" class="App\Type\CustomSecond"/>
                 </doctrine:dbal>
             </doctrine:config>
         </container>
@@ -100,14 +101,14 @@ mapping types, read Doctrine's `Custom Mapping Types`_ section of their document
         use App\Type\CustomFirst;
         use App\Type\CustomSecond;
 
-        $container->loadFromExtension('doctrine', array(
-            'dbal' => array(
-                'types' => array(
+        $container->loadFromExtension('doctrine', [
+            'dbal' => [
+                'types' => [
                     'custom_first'  => CustomFirst::class,
                     'custom_second' => CustomSecond::class,
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 Registering custom Mapping Types in the SchemaTool
 --------------------------------------------------
@@ -126,8 +127,8 @@ mapping type:
         # config/packages/doctrine.yaml
         doctrine:
             dbal:
-               mapping_types:
-                  enum: string
+                mapping_types:
+                    enum: string
 
     .. code-block:: xml
 
@@ -136,13 +137,13 @@ mapping type:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:doctrine="http://symfony.com/schema/dic/doctrine"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/doctrine
-                http://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
+                https://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
 
             <doctrine:config>
                 <doctrine:dbal>
-                     <doctrine:mapping-type name="enum">string</doctrine:mapping-type>
+                    <doctrine:mapping-type name="enum">string</doctrine:mapping-type>
                 </doctrine:dbal>
             </doctrine:config>
         </container>
@@ -150,15 +151,15 @@ mapping type:
     .. code-block:: php
 
         // config/packages/doctrine.php
-        $container->loadFromExtension('doctrine', array(
-            'dbal' => array(
-               'mapping_types' => array(
-                  'enum'  => 'string',
-               ),
-            ),
-        ));
+        $container->loadFromExtension('doctrine', [
+            'dbal' => [
+                'mapping_types' => [
+                    'enum'  => 'string',
+                ],
+            ],
+        ]);
 
-.. _`PDO`:           https://php.net/pdo
-.. _`Doctrine`:      http://www.doctrine-project.org
-.. _`DBAL Documentation`: http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/index.html
-.. _`Custom Mapping Types`: http://docs.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#custom-mapping-types
+.. _`PDO`: https://www.php.net/pdo
+.. _`Doctrine`: https://www.doctrine-project.org/
+.. _`DBAL Documentation`: https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/index.html
+.. _`Custom Mapping Types`: https://www.doctrine-project.org/projects/doctrine-dbal/en/latest/reference/types.html#custom-mapping-types

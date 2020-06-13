@@ -25,8 +25,8 @@ use the logger in a controller, add a new argument type-hinted with ``LoggerInte
     namespace App\Controller;
 
     use Psr\Log\LoggerInterface;
-    use Symfony\Component\Routing\Annotation\Route;
     use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+    use Symfony\Component\Routing\Annotation\Route;
 
     class DefaultController extends AbstractController
     {
@@ -63,16 +63,21 @@ What other possible classes or interfaces could you use? Find out by running:
 
     $ php bin/console debug:autowiring
 
-=============================================================== =====================================
-Class/Interface Type                                            Alias Service ID
-=============================================================== =====================================
-``Psr\Cache\CacheItemPoolInterface``                            alias for "cache.app.recorder"
-``Psr\Log\LoggerInterface``                                     alias for "monolog.logger"
-``Symfony\Component\EventDispatcher\EventDispatcherInterface``  alias for "debug.event_dispatcher"
-``Symfony\Component\HttpFoundation\RequestStack``               alias for "request_stack"
-``Symfony\Component\HttpFoundation\Session\SessionInterface``   alias for "session"
-``Symfony\Component\Routing\RouterInterface``                   alias for "router.default"
-=============================================================== =====================================
+      # this is just a *small* sample of the output...
+
+      Describes a logger instance.
+      Psr\Log\LoggerInterface (monolog.logger)
+
+      Request stack that controls the lifecycle of requests.
+      Symfony\Component\HttpFoundation\RequestStack (request_stack)
+
+      Interface for the session.
+      Symfony\Component\HttpFoundation\Session\SessionInterface (session)
+
+      RouterInterface is the interface that all Router classes must implement.
+      Symfony\Component\Routing\RouterInterface (router.default)
+
+      [...]
 
 This is just a short summary of the full list! And as you add more packages, this
 list of tools will grow!
@@ -105,8 +110,8 @@ Great! You can use this immediately in your controller::
 
     use App\GreetingGenerator;
     use Psr\Log\LoggerInterface;
-    use Symfony\Component\Routing\Annotation\Route;
     use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+    use Symfony\Component\Routing\Annotation\Route;
 
     class DefaultController extends AbstractController
     {
@@ -195,7 +200,7 @@ that extends ``AbstractExtension``::
 
 After creating just *one* file, you can use this immediately:
 
-.. code-block:: twig
+.. code-block:: html+twig
 
     {# templates/default/index.html.twig #}
     {# Will print something like "Hey Symfony!" #}

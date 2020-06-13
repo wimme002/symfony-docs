@@ -17,11 +17,13 @@ The TextType field represents the most basic input text field.
 |             | - `error_mapping`_                                                 |
 |             | - `help`_                                                          |
 |             | - `help_attr`_                                                     |
+|             | - `help_html`_                                                     |
 |             | - `label`_                                                         |
 |             | - `label_attr`_                                                    |
 |             | - `label_format`_                                                  |
 |             | - `mapped`_                                                        |
 |             | - `required`_                                                      |
+|             | - `row_attr`_                                                      |
 |             | - `trim`_                                                          |
 +-------------+--------------------------------------------------------------------+
 | Overridden  | - `compound`_                                                      |
@@ -31,6 +33,8 @@ The TextType field represents the most basic input text field.
 +-------------+--------------------------------------------------------------------+
 | Class       | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\TextType` |
 +-------------+--------------------------------------------------------------------+
+
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
 
 Inherited Options
 -----------------
@@ -61,6 +65,8 @@ an empty string, explicitly set the ``empty_data`` option to an empty string.
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
 
+.. include:: /reference/forms/types/options/help_html.rst.inc
+
 .. include:: /reference/forms/types/options/label.rst.inc
 
 .. include:: /reference/forms/types/options/label_attr.rst.inc
@@ -70,6 +76,8 @@ an empty string, explicitly set the ``empty_data`` option to an empty string.
 .. include:: /reference/forms/types/options/mapped.rst.inc
 
 .. include:: /reference/forms/types/options/required.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc
 
 .. include:: /reference/forms/types/options/trim.rst.inc
 

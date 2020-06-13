@@ -1,11 +1,16 @@
 Enabling React.js
 =================
 
-Using React? First enable support for it in ``webpack.config.js``:
+.. admonition:: Screencast
+    :class: screencast
+
+    Do you prefer video tutorials? Check out the `React.js screencast series`_.
+
+Using React? First add some dependencies with Yarn:
 
 .. code-block:: terminal
 
-    $ yarn add --dev @babel/preset-react
+    $ yarn add @babel/preset-react --dev
     $ yarn add react react-dom prop-types
 
 Enable react in your ``webpack.config.js``:
@@ -27,4 +32,4 @@ Encore, you're done!
 
 Your ``.js`` and ``.jsx`` files will now be transformed through ``babel-preset-react``.
 
-.. _`babel-preset-react`: https://babeljs.io/docs/plugins/preset-react/
+.. _`React.js screencast series`: https://symfonycasts.com/screencast/reactjs

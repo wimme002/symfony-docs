@@ -40,12 +40,11 @@ brevity) to explain how to set up and use the ``ResolveTargetEntityListener``.
 A Customer entity::
 
     // src/Entity/Customer.php
-
     namespace App\Entity;
 
-    use Doctrine\ORM\Mapping as ORM;
     use Acme\CustomerBundle\Entity\Customer as BaseCustomer;
     use Acme\InvoiceBundle\Model\InvoiceSubjectInterface;
+    use Doctrine\ORM\Mapping as ORM;
 
     /**
      * @ORM\Entity
@@ -60,11 +59,10 @@ A Customer entity::
 An Invoice entity::
 
     // src/Acme/InvoiceBundle/Entity/Invoice.php
-
     namespace Acme\InvoiceBundle\Entity;
 
-    use Doctrine\ORM\Mapping AS ORM;
     use Acme\InvoiceBundle\Model\InvoiceSubjectInterface;
+    use Doctrine\ORM\Mapping as ORM;
 
     /**
      * Represents an Invoice.
@@ -84,7 +82,6 @@ An Invoice entity::
 An InvoiceSubjectInterface::
 
     // src/Acme/InvoiceBundle/Model/InvoiceSubjectInterface.php
-
     namespace Acme\InvoiceBundle\Model;
 
     /**
@@ -128,9 +125,9 @@ about the replacement:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:doctrine="http://symfony.com/schema/dic/doctrine"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/doctrine
-                http://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
+                https://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
 
             <doctrine:config>
                 <doctrine:orm>
@@ -146,14 +143,14 @@ about the replacement:
         use Acme\InvoiceBundle\Model\InvoiceSubjectInterface;
         use App\Entity\Customer;
 
-        $container->loadFromExtension('doctrine', array(
-            'orm' => array(
+        $container->loadFromExtension('doctrine', [
+            'orm' => [
                 // ...
-                'resolve_target_entities' => array(
+                'resolve_target_entities' => [
                     InvoiceSubjectInterface::class => Customer::class,
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 Final Thoughts
 --------------

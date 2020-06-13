@@ -74,7 +74,7 @@ Use the ``payload`` option to configure the error level for each constraint:
         <?xml version="1.0" encoding="UTF-8" ?>
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="App\Entity\User">
                 <property name="username">
@@ -106,22 +106,22 @@ Use the ``payload`` option to configure the error level for each constraint:
         // src/Entity/User.php
         namespace App\Entity;
 
-        use Symfony\Component\Validator\Mapping\ClassMetadata;
         use Symfony\Component\Validator\Constraints as Assert;
+        use Symfony\Component\Validator\Mapping\ClassMetadata;
 
         class User
         {
             public static function loadValidatorMetadata(ClassMetadata $metadata)
             {
-                $metadata->addPropertyConstraint('username', new Assert\NotBlank(array(
-                    'payload' => array('severity' => 'error'),
-                )));
-                $metadata->addPropertyConstraint('password', new Assert\NotBlank(array(
-                    'payload' => array('severity' => 'error'),
-                )));
-                $metadata->addPropertyConstraint('bankAccountNumber', new Assert\Iban(array(
-                    'payload' => array('severity' => 'warning'),
-                )));
+                $metadata->addPropertyConstraint('username', new Assert\NotBlank([
+                    'payload' => ['severity' => 'error'],
+                ]));
+                $metadata->addPropertyConstraint('password', new Assert\NotBlank([
+                    'payload' => ['severity' => 'error'],
+                ]));
+                $metadata->addPropertyConstraint('bankAccountNumber', new Assert\Iban([
+                    'payload' => ['severity' => 'warning'],
+                ]));
             }
         }
 
@@ -142,7 +142,7 @@ method. Each constraint exposes the attached payload as a public property::
 For example, you can leverage this to customize the ``form_errors`` block
 so that the severity is added as an additional HTML class:
 
-.. code-block:: html+jinja
+.. code-block:: html+twig
 
     {%- block form_errors -%}
         {%- if errors|length > 0 -%}

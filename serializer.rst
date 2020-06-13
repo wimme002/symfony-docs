@@ -14,12 +14,12 @@ its philosophy and the normalizers and encoders terminology.
 Installation
 ------------
 
-In applications using :doc:`Symfony Flex </setup/flex>`, run this command to
-install the serializer before using it:
+In applications using :ref:`Symfony Flex <symfony-flex>`, run this command to
+install the ``serializer`` :ref:`Symfony pack <symfony-packs>` before using it:
 
 .. code-block:: terminal
 
-    $ composer require symfony/serializer
+    $ composer require symfony/serializer-pack
 
 Using the Serializer Service
 ----------------------------
@@ -61,12 +61,18 @@ As well as the following normalizers:
   handle typical data objects
 * :class:`Symfony\\Component\\Serializer\\Normalizer\\DateTimeNormalizer` for
   objects implementing the :phpclass:`DateTimeInterface` interface
+* :class:`Symfony\\Component\\Serializer\\Normalizer\\DateTimeZoneNormalizer` for
+  :phpclass:`DateTimeZone` objects
+* :class:`Symfony\\Component\\Serializer\\Normalizer\\DateIntervalNormalizer`
+  for :phpclass:`DateInterval` objects
 * :class:`Symfony\\Component\\Serializer\\Normalizer\\DataUriNormalizer` to
   transform :phpclass:`SplFileInfo` objects in `Data URIs`_
 * :class:`Symfony\\Component\\Serializer\\Normalizer\\JsonSerializableNormalizer`
   to deal with objects implementing the :phpclass:`JsonSerializable` interface
 * :class:`Symfony\\Component\\Serializer\\Normalizer\\ArrayDenormalizer` to
   denormalize arrays of objects using a format like `MyObject[]` (note the `[]` suffix)
+* :class:`Symfony\\Component\\Serializer\\Normalizer\\ConstraintViolationListNormalizer` for objects implementing the :class:`Symfony\\Component\\Validator\\ConstraintViolationListInterface` interface
+* :class:`Symfony\\Component\\Serializer\\Normalizer\\ProblemNormalizer` for :class:`Symfony\\Component\\ErrorHandler\\Exception\\FlattenException` objects
 
 Custom normalizers and/or encoders can also be loaded by tagging them as
 :ref:`serializer.normalizer <reference-dic-tags-serializer-normalizer>` and
@@ -87,7 +93,6 @@ properties and setters (``setXxx()``) to change properties:
         services:
             get_set_method_normalizer:
                 class: Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer
-                public: false
                 tags: [serializer.normalizer]
 
     .. code-block:: xml
@@ -97,11 +102,11 @@ properties and setters (``setXxx()``) to change properties:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
-                <service id="get_set_method_normalizer" class="Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer" public="false">
-                    <tag name="serializer.normalizer" />
+                <service id="get_set_method_normalizer" class="Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer">
+                    <tag name="serializer.normalizer"/>
                 </service>
             </services>
         </container>
@@ -109,12 +114,17 @@ properties and setters (``setXxx()``) to change properties:
     .. code-block:: php
 
         // config/services.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
         use Symfony\Component\Serializer\Normalizer\GetSetMethodNormalizer;
 
-        $container->register('get_set_method_normalizer', GetSetMethodNormalizer::class)
-            ->setPublic(false)
-            ->addTag('serializer.normalizer')
-        ;
+        return function(ContainerConfigurator $configurator) {
+            $services = $configurator->services();
+
+            $services->set('get_set_method_normalizer', GetSetMethodNormalizer::class)
+                ->tag('serializer.normalizer')
+            ;
+        };
 
 .. _serializer-using-serialization-groups-annotations:
 
@@ -132,7 +142,7 @@ to your class and choose which groups to use when serializing::
 
     $json = $serializer->serialize(
         $someObject,
-        'json', array('groups' => 'group1')
+        'json', ['groups' => 'group1']
     );
 
 .. tip::
@@ -157,7 +167,7 @@ Configuring the Metadata Cache
 
 The metadata for the serializer is automatically cached to enhance application
 performance. By default, the serializer uses the ``cache.system`` cache pool
-which is configured using the :ref:`cache.system <reference-cache-systen>`
+which is configured using the :ref:`cache.system <reference-cache-system>`
 option.
 
 Enabling a Name Converter
@@ -186,24 +196,35 @@ value:
         <!-- config/packages/framework.xml -->
         <framework:config>
             <!-- ... -->
-            <framework:serializer name-converter="serializer.name_converter.camel_case_to_snake_case" />
+            <framework:serializer name-converter="serializer.name_converter.camel_case_to_snake_case"/>
         </framework:config>
 
     .. code-block:: php
 
         // config/packages/framework.php
-        $container->loadFromExtension('framework', array(
+        $container->loadFromExtension('framework', [
             // ...
-            'serializer' => array(
+            'serializer' => [
                 'name_converter' => 'serializer.name_converter.camel_case_to_snake_case',
-            ),
-        ));
+            ],
+        ]);
 
 Going Further with the Serializer
 ---------------------------------
 
-`ApiPlatform`_ provides an API system supporting `JSON-LD`_ and `Hydra Core Vocabulary`_
-hypermedia formats. It is built on top of the Symfony Framework and its Serializer
+`API Platform`_ provides an API system supporting the following formats:
+
+* `JSON-LD`_ along with the `Hydra Core Vocabulary`_
+* `OpenAPI`_ v2 (formerly Swagger) and v3
+* `GraphQL`_
+* `JSON:API`_
+* `HAL`_
+* JSON
+* XML
+* YAML
+* CSV
+
+It is built on top of the Symfony Framework and its Serializer
 component. It provides custom normalizers and a custom encoder, custom metadata
 and a caching system.
 
@@ -217,8 +238,11 @@ take a look at how this bundle works.
     serializer/custom_encoders
     serializer/custom_normalizer
 
-.. _`APCu`: https://github.com/krakjoe/apcu
-.. _`ApiPlatform`: https://github.com/api-platform/core
-.. _`JSON-LD`: http://json-ld.org
-.. _`Hydra Core Vocabulary`: http://hydra-cg.com
+.. _`API Platform`: https://api-platform.com
+.. _`JSON-LD`: https://json-ld.org
+.. _`Hydra Core Vocabulary`: http://www.hydra-cg.com
+.. _`OpenAPI`: https://www.openapis.org
+.. _`GraphQL`: https://graphql.org
+.. _`JSON:API`: https://jsonapi.org
+.. _`HAL`: http://stateless.co/hal_specification.html
 .. _`Data URIs`: https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URIs

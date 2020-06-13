@@ -8,8 +8,8 @@ The Messenger Component
     The Messenger component helps applications send and receive messages to/from
     other applications or via message queues.
 
-    The component is greatly inspired by Matthias Noback's series of `blog posts
-    about command buses`_ and the `SimpleBus project`_.
+    The component is greatly inspired by Matthias Noback's series of
+    `blog posts about command buses`_ and the `SimpleBus project`_.
 
 .. seealso::
 
@@ -24,14 +24,14 @@ Installation
 
     $ composer require symfony/messenger
 
-Alternatively, you can clone the `<https://github.com/symfony/messenger>`_ repository.
-
 .. include:: /components/require_autoload.rst.inc
 
 Concepts
 --------
 
-.. image:: /_images/components/messenger/overview.png
+.. raw:: html
+
+    <object data="../_images/components/messenger/overview.svg" type="image/svg+xml"></object>
 
 **Sender**:
    Responsible for serializing and sending messages to *something*. This
@@ -54,14 +54,16 @@ Concepts
    For instance: logging, validating a message, starting a transaction, ...
    They are also responsible for calling the next middleware in the chain,
    which means they can tweak the envelope, by adding stamps to it or even
-   replacing it, as well as interrupt the middleware chain.
+   replacing it, as well as interrupt the middleware chain. Middleware are called
+   both when a message is originally dispatched and again later when a message
+   is received from a transport,
 
-**Envelope**
+**Envelope**:
    Messenger specific concept, it gives full flexibility inside the message bus,
    by wrapping the messages into it, allowing to add useful information inside
    through *envelope stamps*.
 
-**Envelope Stamps**
+**Envelope Stamps**:
    Piece of information you need to attach to your message: serializer context
    to use for transport, markers identifying a received message or any sort of
    metadata your middleware or transport layer may use.
@@ -75,20 +77,22 @@ middleware stack. The component comes with a set of middleware that you can use.
 When using the message bus with Symfony's FrameworkBundle, the following middleware
 are configured for you:
 
-#. :class:`Symfony\\Component\\Messenger\\Middleware\\LoggingMiddleware` (logs the processing of your messages)
-#. :class:`Symfony\\Component\\Messenger\\Middleware\\SendMessageMiddleware` (enables asynchronous processing)
+#. :class:`Symfony\\Component\\Messenger\\Middleware\\SendMessageMiddleware` (enables asynchronous processing, logs the processing of your messages if you pass a logger)
 #. :class:`Symfony\\Component\\Messenger\\Middleware\\HandleMessageMiddleware` (calls the registered handler(s))
 
 Example::
 
     use App\Message\MyMessage;
-    use Symfony\Component\Messenger\MessageBus;
+    use App\MessageHandler\MyMessageHandler;
     use Symfony\Component\Messenger\Handler\HandlersLocator;
+    use Symfony\Component\Messenger\MessageBus;
     use Symfony\Component\Messenger\Middleware\HandleMessageMiddleware;
+
+    $handler = new MyMessageHandler();
 
     $bus = new MessageBus([
         new HandleMessageMiddleware(new HandlersLocator([
-            MyMessage::class => ['dummy' => $handler],
+            MyMessage::class => [$handler],
         ])),
     ]);
 
@@ -111,11 +115,13 @@ that will do the required processing for your message::
 
     class MyMessageHandler
     {
-       public function __invoke(MyMessage $message)
-       {
-           // Message processing...
-       }
+        public function __invoke(MyMessage $message)
+        {
+            // Message processing...
+        }
     }
+
+.. _messenger-envelopes:
 
 Adding Metadata to Messages (Envelopes)
 ---------------------------------------
@@ -130,6 +136,8 @@ through the transport layer, use the ``SerializerStamp`` stamp::
 
     $bus->dispatch(
         (new Envelope($message))->with(new SerializerStamp([
+            // groups are applied to the whole message, so make sure
+            // to define the group for every embedded object
             'groups' => ['my_serialization_groups'],
         ]))
     );
@@ -148,16 +156,16 @@ At the moment, the Symfony Messenger has the following built-in envelope stamps:
    :class:`Symfony\\Component\\Messenger\\Transport\\Sender\\SendersLocator`.
 #. :class:`Symfony\\Component\\Messenger\\Stamp\\HandledStamp`,
    a stamp that marks the message as handled by a specific handler.
-   Allows accessing the handler returned value, the handler callable name
-   and its alias if available from the :class:`Symfony\\Component\\Messenger\\Handler\\HandlersLocator`.
+   Allows accessing the handler returned value and the handler name.
 
 Instead of dealing directly with the messages in the middleware you receive the envelope.
 Hence you can inspect the envelope content and its stamps, or add any::
 
     use App\Message\Stamp\AnotherStamp;
-    use Symfony\Component\Messenger\Stamp\ReceivedStamp;
+    use Symfony\Component\Messenger\Envelope;
     use Symfony\Component\Messenger\Middleware\MiddlewareInterface;
     use Symfony\Component\Messenger\Middleware\StackInterface;
+    use Symfony\Component\Messenger\Stamp\ReceivedStamp;
 
     class MyOwnMiddleware implements MiddlewareInterface
     {
@@ -168,6 +176,8 @@ Hence you can inspect the envelope content and its stamps, or add any::
 
                 // You could for example add another stamp.
                 $envelope = $envelope->with(new AnotherStamp(/* ... */));
+            } else {
+                // Message was just originally dispatched
             }
 
             return $stack->next()->handle($envelope, $stack);
@@ -199,50 +209,50 @@ transport will be responsible for communicating with your message broker or 3rd 
 Your own Sender
 ~~~~~~~~~~~~~~~
 
-Using the :class:`Symfony\\Component\\Messenger\\Transport\\Sender\\SenderInterface`,
-you can create your own message sender.
 Imagine that you already have an ``ImportantAction`` message going through the
 message bus and being handled by a handler. Now, you also want to send this
-message as an email.
+message as an email (using the :doc:`Mime </components/mime>` and
+:doc:`Mailer </components/mailer>` components).
 
-First, create your sender::
+Using the :class:`Symfony\\Component\\Messenger\\Transport\\Sender\\SenderInterface`,
+you can create your own message sender::
 
     namespace App\MessageSender;
 
     use App\Message\ImportantAction;
-    use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
+    use Symfony\Component\Mailer\MailerInterface;
     use Symfony\Component\Messenger\Envelope;
+    use Symfony\Component\Messenger\Transport\Sender\SenderInterface;
+    use Symfony\Component\Mime\Email;
 
     class ImportantActionToEmailSender implements SenderInterface
     {
-       private $mailer;
-       private $toEmail;
+        private $mailer;
+        private $toEmail;
 
-       public function __construct(\Swift_Mailer $mailer, string $toEmail)
-       {
-           $this->mailer = $mailer;
-           $this->toEmail = $toEmail;
-       }
+        public function __construct(MailerInterface $mailer, string $toEmail)
+        {
+            $this->mailer = $mailer;
+            $this->toEmail = $toEmail;
+        }
 
-       public function send(Envelope $envelope): Envelope
-       {
-           $message = $envelope->getMessage();
+        public function send(Envelope $envelope): Envelope
+        {
+            $message = $envelope->getMessage();
 
-           if (!$message instanceof ImportantAction) {
-               throw new \InvalidArgumentException(sprintf('This transport only supports "%s" messages.', ImportantAction::class));
-           }
+            if (!$message instanceof ImportantAction) {
+                throw new \InvalidArgumentException(sprintf('This transport only supports "%s" messages.', ImportantAction::class));
+            }
 
-           $this->mailer->send(
-               (new \Swift_Message('Important action made'))
-                   ->setTo($this->toEmail)
-                   ->setBody(
-                       '<h1>Important action</h1><p>Made by '.$message->getUsername().'</p>',
-                       'text/html'
-                   )
-           );
+            $this->mailer->send(
+                (new Email())
+                    ->to($this->toEmail)
+                    ->subject('Important action made')
+                    ->html('<h1>Important action</h1><p>Made by '.$message->getUsername().'</p>')
+            );
 
-           return $envelope;
-       }
+            return $envelope;
+        }
     }
 
 Your own Receiver
@@ -257,43 +267,58 @@ application but you can't use an API and need to use a shared CSV file with new
 orders.
 
 You will read this CSV file and dispatch a ``NewOrder`` message. All you need to
-do is to write your custom CSV receiver and Symfony will do the rest.
-
-First, create your receiver::
+do is to write your own CSV receiver::
 
     namespace App\MessageReceiver;
 
     use App\Message\NewOrder;
+    use Symfony\Component\Messenger\Envelope;
+    use Symfony\Component\Messenger\Exception\MessageDecodingFailedException;
     use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
     use Symfony\Component\Serializer\SerializerInterface;
-    use Symfony\Component\Messenger\Envelope;
 
     class NewOrdersFromCsvFileReceiver implements ReceiverInterface
     {
-       private $serializer;
-       private $filePath;
+        private $serializer;
+        private $filePath;
 
-       public function __construct(SerializerInterface $serializer, string $filePath)
-       {
-           $this->serializer = $serializer;
-           $this->filePath = $filePath;
-       }
+        public function __construct(SerializerInterface $serializer, string $filePath)
+        {
+            $this->serializer = $serializer;
+            $this->filePath = $filePath;
+        }
 
-       public function receive(callable $handler): void
-       {
-           $ordersFromCsv = $this->serializer->deserialize(file_get_contents($this->filePath), 'csv');
+        public function get(): iterable
+        {
+            // Receive the envelope according to your transport ($yourEnvelope here),
+            // in most cases, using a connection is the easiest solution.
+            if (null === $yourEnvelope) {
+                return [];
+            }
 
-           foreach ($ordersFromCsv as $orderFromCsv) {
-               $order = new NewOrder($orderFromCsv['id'], $orderFromCsv['account_id'], $orderFromCsv['amount']);
+            try {
+                $envelope = $this->serializer->decode([
+                    'body' => $yourEnvelope['body'],
+                    'headers' => $yourEnvelope['headers'],
+                ]);
+            } catch (MessageDecodingFailedException $exception) {
+                $this->connection->reject($yourEnvelope['id']);
+                throw $exception;
+            }
 
-               $handler(new Envelope($order));
-           }
-       }
+            return [$envelope->with(new CustomStamp($yourEnvelope['id']))];
+        }
 
-       public function stop(): void
-       {
-           // noop
-       }
+        public function ack(Envelope $envelope): void
+        {
+            // Add information about the handled message
+        }
+
+        public function reject(Envelope $envelope): void
+        {
+            // In the case of a custom connection
+            $this->connection->reject($this->findCustomStamp($envelope)->getId());
+        }
     }
 
 Receiver and Sender on the same Bus
@@ -306,6 +331,7 @@ middleware will know it should not route these messages again to a transport.
 
 Learn more
 ----------
+
 .. toctree::
     :maxdepth: 1
     :glob:
@@ -313,5 +339,5 @@ Learn more
     /messenger
     /messenger/*
 
-.. _blog posts about command buses: https://matthiasnoback.nl/tags/command%20bus/
-.. _SimpleBus project: http://simplebus.io
+.. _`blog posts about command buses`: https://matthiasnoback.nl/tags/command%20bus/
+.. _`SimpleBus project`: http://docs.simplebus.io/en/latest/

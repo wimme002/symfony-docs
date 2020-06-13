@@ -32,19 +32,23 @@ and your generated code may be slightly different:
     Choose a name for the controller class (e.g. SecurityController) [SecurityController]:
     > SecurityController
 
+    Do you want to generate a '/logout' URL? (yes/no) [yes]:
+    > yes
+
      created: src/Security/LoginFormAuthenticator.php
      updated: config/packages/security.yaml
      created: src/Controller/SecurityController.php
      created: templates/security/login.html.twig
 
 .. versionadded:: 1.8
+
     Support for login form authentication was added to ``make:auth`` in MakerBundle 1.8.
 
-This generates three things: (1) a login route & controller, (2) a template that
-renders the login form and (3) a :doc:`Guard authenticator </security/guard_authentication>`
-class that processes the login submit.
+This generates the following: 1) a login route & controller, 2) a template that
+renders the login form, 3) a :doc:`Guard authenticator </security/guard_authentication>`
+class that processes the login submit and 4) updates the main security config file.
 
-The ``/login`` route & controller::
+**Step 1.** The ``/login`` route & controller::
 
     // src/Controller/SecurityController.php
     namespace App\Controller;
@@ -73,10 +77,57 @@ The ``/login`` route & controller::
         }
     }
 
-The template has very little to do with security: it just generates a traditional
-HTML form that submits to ``/login``:
+Edit the ``security.yaml`` file in order to allow access for anyone to the
+``/login`` route:
 
-.. code-block:: twig
+.. configuration-block::
+
+    .. code-block:: yaml
+
+        # config/packages/security.yaml
+        security:
+            # ...
+
+            access_control:
+                - { path: ^/login$, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+                # ...
+
+    .. code-block:: xml
+
+        <!-- config/packages/security.xml -->
+        <?xml version="1.0" charset="UTF-8" ?>
+        <srv:container xmlns="http://symfony.com/schema/dic/security"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:srv="http://symfony.com/schema/dic/services"
+            xsi:schemaLocation="http://symfony.com/schema/dic/services
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
+
+            <config>
+                <rule path="^/login$" role="IS_AUTHENTICATED_ANONYMOUSLY"/>
+                <!-- ... -->
+            </config>
+        </srv:container>
+
+    .. code-block:: php
+
+        // config/packages/security.php
+        $container->loadFromExtension('security', [
+            // ...
+            'access_control' => [
+                [
+                    'path' => '^/login',
+                    'roles' => 'IS_AUTHENTICATED_ANONYMOUSLY',
+                ],
+                // ...
+            ],
+        ]);
+
+**Step 2.** The template has very little to do with security: it just generates
+a traditional HTML form that submits to ``/login``:
+
+.. code-block:: html+twig
 
     {% extends 'base.html.twig' %}
 
@@ -115,18 +166,20 @@ HTML form that submits to ``/login``:
     </form>
     {% endblock %}
 
-The Guard authenticator processes the form submit::
+**Step 3.** The Guard authenticator processes the form submit::
 
     // src/Security/LoginFormAuthenticator.php
     namespace App\Security;
 
     use App\Entity\User;
     use Doctrine\ORM\EntityManagerInterface;
+
     use Symfony\Component\HttpFoundation\RedirectResponse;
     use Symfony\Component\HttpFoundation\Request;
-    use Symfony\Component\Routing\RouterInterface;
+    use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
     use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
     use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
+    use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
     use Symfony\Component\Security\Core\Exception\InvalidCsrfTokenException;
     use Symfony\Component\Security\Core\Security;
     use Symfony\Component\Security\Core\User\UserInterface;
@@ -134,28 +187,31 @@ The Guard authenticator processes the form submit::
     use Symfony\Component\Security\Csrf\CsrfToken;
     use Symfony\Component\Security\Csrf\CsrfTokenManagerInterface;
     use Symfony\Component\Security\Guard\Authenticator\AbstractFormLoginAuthenticator;
+    use Symfony\Component\Security\Guard\PasswordAuthenticatedInterface;
     use Symfony\Component\Security\Http\Util\TargetPathTrait;
 
-    class LoginFormAuthenticator extends AbstractFormLoginAuthenticator
+    class LoginFormAuthenticator extends AbstractFormLoginAuthenticator implements PasswordAuthenticatedInterface
     {
         use TargetPathTrait;
 
+        private const LOGIN_ROUTE = 'app_login';
+
         private $entityManager;
-        private $router;
+        private $urlGenerator;
         private $csrfTokenManager;
         private $passwordEncoder;
 
-        public function __construct(EntityManagerInterface $entityManager, RouterInterface $router, CsrfTokenManagerInterface $csrfTokenManager, UserPasswordEncoderInterface $passwordEncoder)
+        public function __construct(EntityManagerInterface $entityManager, UrlGeneratorInterface $urlGenerator, CsrfTokenManagerInterface $csrfTokenManager, UserPasswordEncoderInterface $passwordEncoder)
         {
             $this->entityManager = $entityManager;
-            $this->router = $router;
+            $this->urlGenerator = $urlGenerator;
             $this->csrfTokenManager = $csrfTokenManager;
             $this->passwordEncoder = $passwordEncoder;
         }
 
         public function supports(Request $request)
         {
-            return 'app_login' === $request->attributes->get('_route')
+            return self::LOGIN_ROUTE === $request->attributes->get('_route')
                 && $request->isMethod('POST');
         }
 
@@ -202,15 +258,74 @@ The Guard authenticator processes the form submit::
                 return new RedirectResponse($targetPath);
             }
 
-            // For example : return new RedirectResponse($this->router->generate('some_route'));
+            // For example : return new RedirectResponse($this->urlGenerator->generate('some_route'));
             throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
         }
 
         protected function getLoginUrl()
         {
-            return $this->router->generate('app_login');
+            return $this->urlGenerator->generate(self::LOGIN_ROUTE);
         }
     }
+
+**Step 4.** Updates the main security config file to enable the Guard authenticator:
+
+.. configuration-block::
+
+    .. code-block:: yaml
+
+        # config/packages/security.yaml
+        security:
+            # ...
+
+            firewalls:
+                main:
+                    # ...
+                    guard:
+                        authenticators:
+                            - App\Security\LoginFormAuthenticator
+
+    .. code-block:: xml
+
+        <!-- config/packages/security.xml -->
+        <?xml version="1.0" charset="UTF-8" ?>
+        <srv:container xmlns="http://symfony.com/schema/dic/security"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:srv="http://symfony.com/schema/dic/services"
+            xsi:schemaLocation="http://symfony.com/schema/dic/services
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
+
+            <config>
+                <!-- ... -->
+                <firewall name="main">
+                    <!-- ... -->
+                    <guard>
+                        <authenticator class="App\Security\LoginFormAuthenticator"/>
+                    </guard>
+                </firewall>
+            </config>
+        </srv:container>
+
+    .. code-block:: php
+
+        // config/packages/security.php
+        use App\Security\LoginFormAuthenticator;
+
+        $container->loadFromExtension('security', [
+            // ...
+            'firewalls' => [
+                'main' => [
+                    // ...,
+                    'guard' => [
+                        'authenticators' => [
+                            LoginFormAuthenticator::class,
+                        ]
+                    ],
+                ],
+            ],
+        ]);
 
 Finishing the Login Form
 ------------------------
@@ -238,7 +353,7 @@ be redirected after success:
 
     -     throw new \Exception('TODO: provide a valid redirect inside '.__FILE__);
     +     // redirect to some "app_homepage" route - of wherever you want
-    +     return new RedirectResponse($this->router->generate('app_homepage'));
+    +     return new RedirectResponse($this->urlGenerator->generate('app_homepage'));
     }
 
 Unless you have any other TODOs in that file, that's it! If you're loading users
@@ -294,9 +409,9 @@ domain:
     .. code-block:: php
 
         // translations/security.en.php
-        return array(
+        return [
             'Invalid credentials.' => 'The password you entered was invalid!',
-        );
+        ];
 
 If the message isn't translated, make sure you've installed the ``translator``
 and try clearing your cache:
@@ -314,5 +429,54 @@ if the name of your firewall is ``main``). Most of the times you don't have to
 deal with this low level session variable. However, the
 :class:`Symfony\\Component\\Security\\Http\\Util\\TargetPathTrait` utility
 can be used to read (like in the example above) or set this value manually.
+
+When the user tries to access a restricted page, they are being redirected to
+the login page. At that point target path will be set. After a successful login,
+the user will be redirected to this previously set target path.
+
+If you also want to apply this behavior to public pages, you can create an
+:doc:`event subscriber </event_dispatcher>` to set the target path manually
+whenever the user browses a page::
+
+    namespace App\EventSubscriber;
+
+    use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+    use Symfony\Component\HttpFoundation\Session\SessionInterface;
+    use Symfony\Component\HttpKernel\Event\RequestEvent;
+    use Symfony\Component\HttpKernel\KernelEvents;
+    use Symfony\Component\Security\Http\Util\TargetPathTrait;
+
+    class RequestSubscriber implements EventSubscriberInterface
+    {
+        use TargetPathTrait;
+
+        private $session;
+
+        public function __construct(SessionInterface $session)
+        {
+            $this->session = $session;
+        }
+
+        public function onKernelRequest(RequestEvent $event): void
+        {
+            $request = $event->getRequest();
+            if (
+                !$event->isMasterRequest()
+                || $request->isXmlHttpRequest()
+                || 'app_login' === $request->attributes->get('_route')
+            ) {
+                return;
+            }
+
+            $this->saveTargetPath($this->session, 'main', $request->getUri());
+        }
+
+        public static function getSubscribedEvents()
+        {
+            return [
+                KernelEvents::REQUEST => ['onKernelRequest']
+            ];
+        }
+    }
 
 .. _`MakerBundle`: https://symfony.com/doc/current/bundles/SymfonyMakerBundle/index.html

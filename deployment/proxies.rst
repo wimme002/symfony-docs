@@ -18,13 +18,11 @@ via HTTPS, the client's port and the hostname being requested.
 
 .. _request-set-trusted-proxies:
 
-Solution: setTrustedProxies()
------------------------------
+Solution: ``setTrustedProxies()``
+---------------------------------
 
 To fix this, you need to tell Symfony which reverse proxy IP addresses to trust
-and what headers your reverse proxy uses to send information:
-
-.. code-block:: php
+and what headers your reverse proxy uses to send information::
 
     // public/index.php
 
@@ -61,16 +59,15 @@ In this case, you'll need to - *very carefully* - trust *all* proxies.
    other than your load balancers. For AWS, this can be done with `security groups`_.
 
 #. Once you've guaranteed that traffic will only come from your trusted reverse
-   proxies, configure Symfony to *always* trust incoming request:
-
-   .. code-block:: php
+   proxies, configure Symfony to *always* trust incoming request::
 
        // public/index.php
 
        // ...
        Request::setTrustedProxies(
-           // trust *all* requests
-           array('127.0.0.1', $request->server->get('REMOTE_ADDR')),
+           // trust *all* requests (the 'REMOTE_ADDR' string is replaced at
+           // run time by $_SERVER['REMOTE_ADDR'])
+           ['127.0.0.1', 'REMOTE_ADDR'],
 
            // if you're using ELB, otherwise use a constant from above
            Request::HEADER_X_FORWARDED_AWS_ELB
@@ -80,5 +77,40 @@ That's it! It's critical that you prevent traffic from all non-trusted sources.
 If you allow outside traffic, they could "spoof" their true IP address and
 other information.
 
-.. _`security groups`: http://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-groups.html
-.. _`RFC 7239`: http://tools.ietf.org/html/rfc7239
+.. tip::
+
+    In applications using :ref:`Symfony Flex <symfony-flex>` you can set the
+    ``TRUSTED_PROXIES`` env var:
+
+    .. code-block:: bash
+
+        # .env
+        TRUSTED_PROXIES=127.0.0.1,REMOTE_ADDR
+
+
+If you are also using a reverse proxy on top of your load balancer (e.g.
+`CloudFront`_), calling ``$request->server->get('REMOTE_ADDR')`` won't be
+enough, as it will only trust the node sitting directly above your application
+(in this case your load balancer). You also need to append the IP addresses or
+ranges of any additional proxy (e.g. `CloudFront IP ranges`_) to the array of
+trusted proxies.
+
+Custom Headers When Using a Reverse Proxy
+-----------------------------------------
+
+Some reverse proxies (like `CloudFront`_ with ``CloudFront-Forwarded-Proto``) may force you to use a custom header.
+For instance you have ``Custom-Forwarded-Proto`` instead of ``X-Forwarded-Proto``.
+
+In this case, you'll need to set the header ``X-Forwarded-Proto`` with the value of
+``Custom-Forwarded-Proto`` early enough in your application, i.e. before handling the request::
+
+    // public/index.php
+
+    // ...
+    $_SERVER['HTTP_X_FORWARDED_PROTO'] = $_SERVER['HTTP_CUSTOM_FORWARDED_PROTO'];
+    // ...
+    $response = $kernel->handle($request);
+
+.. _`security groups`: https://docs.aws.amazon.com/elasticloadbalancing/latest/classic/elb-security-groups.html
+.. _`CloudFront`: https://en.wikipedia.org/wiki/Amazon_CloudFront
+.. _`CloudFront IP ranges`: https://ip-ranges.amazonaws.com/ip-ranges.json

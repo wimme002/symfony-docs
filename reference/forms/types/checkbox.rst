@@ -20,22 +20,27 @@ if you want to handle submitted values like "0" or "false").
 | Overridden  | - `compound`_                                                          |
 | options     | - `empty_data`_                                                        |
 +-------------+------------------------------------------------------------------------+
-| Inherited   | - `data`_                                                              |
-| options     | - `disabled`_                                                          |
+| Inherited   | - `attr`_                                                              |
+| options     | - `data`_                                                              |
+|             | - `disabled`_                                                          |
 |             | - `error_bubbling`_                                                    |
 |             | - `error_mapping`_                                                     |
 |             | - `help`_                                                              |
 |             | - `help_attr`_                                                         |
+|             | - `help_html`_                                                         |
 |             | - `label`_                                                             |
 |             | - `label_attr`_                                                        |
 |             | - `label_format`_                                                      |
 |             | - `mapped`_                                                            |
 |             | - `required`_                                                          |
+|             | - `row_attr`_                                                          |
 +-------------+------------------------------------------------------------------------+
 | Parent type | :doc:`FormType </reference/forms/types/form>`                          |
 +-------------+------------------------------------------------------------------------+
 | Class       | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\CheckboxType` |
 +-------------+------------------------------------------------------------------------+
+
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
 
 Example Usage
 -------------
@@ -45,10 +50,10 @@ Example Usage
     use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
     // ...
 
-    $builder->add('public', CheckboxType::class, array(
+    $builder->add('public', CheckboxType::class, [
         'label'    => 'Show this entry publicly?',
         'required' => false,
-    ));
+    ]);
 
 Field Options
 -------------
@@ -56,7 +61,7 @@ Field Options
 false_values
 ~~~~~~~~~~~~
 
-**type**: ``array`` **default**: ``array(null)``
+**type**: ``array`` **default**: ``[null]``
 
 An array of values to be interpreted as ``false``.
 
@@ -74,6 +79,8 @@ Inherited Options
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
+.. include:: /reference/forms/types/options/attr.rst.inc
+
 .. include:: /reference/forms/types/options/data.rst.inc
 
 .. include:: /reference/forms/types/options/disabled.rst.inc
@@ -86,6 +93,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
 
+.. include:: /reference/forms/types/options/help_html.rst.inc
+
 .. include:: /reference/forms/types/options/label.rst.inc
 
 .. include:: /reference/forms/types/options/label_attr.rst.inc
@@ -95,6 +104,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 .. include:: /reference/forms/types/options/mapped.rst.inc
 
 .. include:: /reference/forms/types/options/required.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc
 
 Form Variables
 --------------

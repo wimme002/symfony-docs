@@ -20,7 +20,7 @@ to :doc:`send emails </email>`. All these options are configured under the
 
     When using XML, you must use the ``http://symfony.com/schema/dic/swiftmailer``
     namespace and the related XSD schema is available at:
-    ``http://symfony.com/schema/dic/swiftmailer/swiftmailer-1.0.xsd``
+    ``https://symfony.com/schema/dic/swiftmailer/swiftmailer-1.0.xsd``
 
 Configuration
 -------------
@@ -157,7 +157,7 @@ values are ``plain``, ``login``, ``cram-md5``, or ``null``.
 spool
 ~~~~~
 
-For details on email spooling, see :doc:`/email/spool`.
+For details on email spooling, see :doc:`/mailer`.
 
 type
 ....
@@ -253,11 +253,10 @@ the information will be available in the profiler.
 
 .. tip::
 
-    The following options can be set via environment variables using the
-    ``%env()%`` syntax: ``url``, ``transport``, ``username``, ``password``,
-    ``host``, ``port``, ``timeout``, ``source_ip``, ``local_domain``,
-    ``encryption``, ``auth_mode``.
-    For details, see the :doc:`/configuration/external_parameters` article.
+    The following options can be set via environment variables: ``url``,
+    ``transport``, ``username``, ``password``, ``host``, ``port``, ``timeout``,
+    ``source_ip``, ``local_domain``, ``encryption``, ``auth_mode``. For details,
+    see: :ref:`config-env-vars`.
 
 Using Multiple Mailers
 ----------------------
@@ -284,9 +283,9 @@ key (the default mailer is identified by the ``default_mailer`` option):
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:swiftmailer="http://symfony.com/schema/dic/swiftmailer"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/swiftmailer
-                http://symfony.com/schema/dic/swiftmailer/swiftmailer-1.0.xsd">
+                https://symfony.com/schema/dic/swiftmailer/swiftmailer-1.0.xsd">
 
             <swiftmailer:config default-mailer="second_mailer">
                 <swiftmailer:mailer name="first_mailer"/>
@@ -296,17 +295,17 @@ key (the default mailer is identified by the ``default_mailer`` option):
 
     .. code-block:: php
 
-        $container->loadFromExtension('swiftmailer', array(
+        $container->loadFromExtension('swiftmailer', [
             'default_mailer' => 'second_mailer',
-            'mailers' => array(
-                'first_mailer' => array(
+            'mailers' => [
+                'first_mailer' => [
                     // ...
-                ),
-                'second_mailer' => array(
+                ],
+                'second_mailer' => [
                     // ...
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 Each mailer is registered automatically as a service with these IDs::
 
@@ -358,7 +357,7 @@ alternatives based on the :ref:`service binding <services-binding>` feature:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <defaults autowire="true" autoconfigure="true" public="false">
@@ -381,15 +380,16 @@ alternatives based on the :ref:`service binding <services-binding>` feature:
 
         // config/services.php
         use App\Some\Service;
-        use Symfony\Component\DependencyInjection\Reference;
         use Psr\Log\LoggerInterface;
+        use Symfony\Component\DependencyInjection\Reference;
+
 
         $container->register(Service::class)
             ->setPublic(true)
-            ->setBindings(array(
+            ->setBindings([
                 // this injects the second mailer when this service type-hints constructor arguments with \Swift_Mailer
-                \Swift_Mailer => '@swiftmailer.mailer.second_mailer',
+                \Swift_Mailer::class => '@swiftmailer.mailer.second_mailer',
                 // this injects the second mailer when this service has a constructor argument called $specialMailer
                 '$specialMailer' => '@swiftmailer.mailer.second_mailer',
-            ))
+            ])
         ;

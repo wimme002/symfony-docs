@@ -45,7 +45,7 @@ extend from the original template, not from the overridden one:
 
     {# templates/bundles/FOSUserBundle/Registration/confirmed.html.twig #}
     {# the special '!' prefix avoids errors when extending from an overridden template #}
-    {% extends "@!FOSUserBundle/Registration/confirmed.html.twig" %}
+    {% extends "@!FOSUser/Registration/confirmed.html.twig" %}
 
     {% block some_block %}
         ...
@@ -143,7 +143,7 @@ to a new validation group:
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping
-                http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+                https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="FOS\UserBundle\Model\User">
                 <property name="plainPassword">
@@ -172,12 +172,12 @@ instead of the original ones.
 Translations
 ------------
 
-Translations are not related to bundles, but to :ref:`translation domains <using-message-domains>`.
+Translations are not related to bundles, but to translation domains.
 For this reason, you can override any bundle translation file from the main
 ``translations/`` directory, as long as the new file uses the same domain.
 
 For example, to override the translations defined in the
 ``Resources/translations/FOSUserBundle.es.yml`` file of the FOSUserBundle,
-create a``<your-project>/translations/FOSUserBundle.es.yml`` file.
+create a ``<your-project>/translations/FOSUserBundle.es.yml`` file.
 
-.. _`the Doctrine documentation`: http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/inheritance-mapping.html#overrides
+.. _`the Doctrine documentation`: https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/inheritance-mapping.html#overrides

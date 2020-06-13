@@ -12,7 +12,7 @@ have one limitation: they can only cache whole pages. If your pages contain
 dynamic sections, such as the user name or a shopping cart, you are out of
 luck. Fortunately, Symfony provides a solution for these cases, based on a
 technology called `ESI`_, or Edge Side Includes. Akamai wrote this specification
-almost 10 years ago and it allows specific parts of a page to have a different
+in 2001 and it allows specific parts of a page to have a different
 caching strategy than the main page.
 
 The ESI specification describes tags you can embed in your pages to communicate
@@ -27,7 +27,7 @@ as this is the only useful one outside of Akamai context:
             <!-- ... some content -->
 
             <!-- Embed the content of another page here -->
-            <esi:include src="http://..." />
+            <esi:include src="http://..."/>
 
             <!-- ... more content -->
         </body>
@@ -75,23 +75,23 @@ First, to use ESI, be sure to enable it in your application configuration:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:framework="http://symfony.com/schema/dic/symfony"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/symfony
-                http://symfony.com/schema/dic/symfony/symfony-1.0.xsd">
+                https://symfony.com/schema/dic/symfony/symfony-1.0.xsd">
 
             <framework:config>
                 <!-- ... -->
-                <framework:esi enabled="true" />
+                <framework:esi enabled="true"/>
             </framework:config>
         </container>
 
     .. code-block:: php
 
         // config/packages/framework.php
-        $container->loadFromExtension('framework', array(
+        $container->loadFromExtension('framework', [
             // ...
-            'esi' => array('enabled' => true),
-        ));
+            'esi' => ['enabled' => true],
+        ]);
 
 Now, suppose you have a page that is relatively static, except for a news
 ticker at the bottom of the content. With ESI, you can cache the news ticker
@@ -114,8 +114,8 @@ independently of the rest of the page::
 
 In this example, the full-page cache has a lifetime of ten minutes.
 Next, include the news ticker in the template by embedding an action.
-This is done via the ``render`` helper (see :doc:`/templating/embedding_controllers`
-for more details).
+This is done via the ``render()`` helper (for more details, see how to
+:ref:`embed controllers in templates <templates-embed-controllers>`).
 
 As the embedded content comes from another page (or controller for that
 matter), Symfony uses the standard ``render`` helper to configure ESI tags:
@@ -205,23 +205,23 @@ that must be enabled in your configuration:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:framework="http://symfony.com/schema/dic/symfony"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/symfony
-                http://symfony.com/schema/dic/symfony/symfony-1.0.xsd">
+                https://symfony.com/schema/dic/symfony/symfony-1.0.xsd">
 
             <!-- ... -->
             <framework:config>
-                <framework:fragment path="/_fragment" />
+                <framework:fragment path="/_fragment"/>
             </framework:config>
         </container>
 
     .. code-block:: php
 
         // config/packages/framework.php
-        $container->loadFromExtension('framework', array(
+        $container->loadFromExtension('framework', [
             // ...
-            'fragments' => array('path' => '/_fragment'),
-        ));
+            'fragments' => ['path' => '/_fragment'],
+        ]);
 
 One great advantage of the ESI renderer is that you can make your application
 as dynamic as needed and at the same time, hit the application as little as
@@ -250,6 +250,6 @@ The ``render_esi`` helper supports two other useful options:
 ``ignore_errors``
     If set to true, an ``onerror`` attribute will be added to the ESI with a value
     of ``continue`` indicating that, in the event of a failure, the gateway cache
-    will simply remove the ESI tag silently.
+    will remove the ESI tag silently.
 
 .. _`ESI`: http://www.w3.org/TR/esi-lang

@@ -16,7 +16,7 @@ request to generate the response.
 
 This single kernel approach is a convenient default, but Symfony applications
 can define any number of kernels. Whereas
-:doc:`environments </configuration/environments>` execute the same application
+:ref:`environments <configuration-environments>` execute the same application
 with different configurations, kernels can execute different parts of the same
 application.
 
@@ -82,9 +82,9 @@ Kernel. Be sure to also change the location of the cache, logs and configuration
 files so they don't collide with the files from ``src/Kernel.php``::
 
     // src/ApiKernel.php
-    use Symfony\Component\HttpKernel\Kernel;
     use Symfony\Component\Config\Loader\LoaderInterface;
     use Symfony\Component\DependencyInjection\ContainerBuilder;
+    use Symfony\Component\HttpKernel\Kernel;
 
     class ApiKernel extends Kernel
     {
@@ -136,7 +136,7 @@ The ``bin/console`` script used to run Symfony commands always uses the default
 to execute console commands using the new kernel, duplicate the ``bin/console``
 script and rename it (e.g. ``bin/api``).
 
-Then, replace the ``Kernel`` instantiation by your own kernel instantiation
+Then, replace the ``Kernel`` instance by your own kernel instance
 (e.g. ``ApiKernel``) and now you can execute commands using the new kernel
 (e.g. ``php bin/api cache:clear``) Now you can use execute commands using the
 new kernel.

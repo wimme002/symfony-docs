@@ -21,10 +21,10 @@ to customize the normalized data. To do that, leverage the ``ObjectNormalizer``:
 
     use App\Entity\Topic;
     use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-    use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
+    use Symfony\Component\Serializer\Normalizer\ContextAwareNormalizerInterface;
     use Symfony\Component\Serializer\Normalizer\ObjectNormalizer;
 
-    class TopicNormalizer implements NormalizerInterface
+    class TopicNormalizer implements ContextAwareNormalizerInterface
     {
         private $router;
         private $normalizer;
@@ -35,19 +35,19 @@ to customize the normalized data. To do that, leverage the ``ObjectNormalizer``:
             $this->normalizer = $normalizer;
         }
 
-        public function normalize($topic, $format = null, array $context = array())
+        public function normalize($topic, $format = null, array $context = [])
         {
             $data = $this->normalizer->normalize($topic, $format, $context);
 
             // Here, add, edit, or delete some data:
-            $data['href']['self'] = $this->router->generate('topic_show', array(
+            $data['href']['self'] = $this->router->generate('topic_show', [
                 'id' => $topic->getId(),
-            ), UrlGeneratorInterface::ABSOLUTE_URL);
+            ], UrlGeneratorInterface::ABSOLUTE_URL);
 
             return $data;
         }
 
-        public function supportsNormalization($data, $format = null)
+        public function supportsNormalization($data, $format = null, array $context = [])
         {
             return $data instanceof Topic;
         }

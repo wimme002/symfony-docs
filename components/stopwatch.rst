@@ -14,25 +14,28 @@ Installation
 
     $ composer require symfony/stopwatch
 
-Alternatively, you can clone the `<https://github.com/symfony/stopwatch>`_ repository.
-
 .. include:: /components/require_autoload.rst.inc
 
 Usage
 -----
 
-The Stopwatch component provides an easy and consistent way to measure execution
+The Stopwatch component provides a consistent way to measure execution
 time of certain parts of code so that you don't constantly have to parse
-microtime by yourself. Instead, use the
+:phpfunction:`microtime` by yourself. Instead, use the
 :class:`Symfony\\Component\\Stopwatch\\Stopwatch` class::
 
     use Symfony\Component\Stopwatch\Stopwatch;
 
     $stopwatch = new Stopwatch();
+
     // starts event named 'eventName'
     $stopwatch->start('eventName');
-    // ... some code goes here
+
+    // ... run your code here
+
     $event = $stopwatch->stop('eventName');
+    // you can convert $event into a string for a quick summary
+    // e.g. (string) $event = '4.50 MiB - 26 ms'
 
 The :class:`Symfony\\Component\\Stopwatch\\StopwatchEvent` object can be retrieved
 from the  :method:`Symfony\\Component\\Stopwatch\\Stopwatch::start`,
@@ -63,9 +66,8 @@ Symfony Profiler tool uses categories to nicely color-code different events.
 
 .. tip::
 
-    When you want to show events in the Symfony profiler, autowire
-    ``Symfony\Component\Stopwatch\Stopwatch`` into your service. Each category
-    is shown on a separate line.
+    Read :ref:`this article <profiler-timing-execution>` to learn more about
+    integrating the Stopwatch component into the Symfony profiler.
 
 Periods
 -------
@@ -122,5 +124,3 @@ method and specifying the id of the section to be reopened::
     $stopwatch->openSection('routing');
     $stopwatch->start('building_config_tree');
     $stopwatch->stopSection('routing');
-
-.. _Packagist: https://packagist.org/packages/symfony/stopwatch

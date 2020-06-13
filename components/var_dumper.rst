@@ -14,16 +14,14 @@ Installation
 
 .. code-block:: terminal
 
-    $ composer require symfony/var-dumper --dev
-
-Alternatively, you can clone the `<https://github.com/symfony/var-dumper>`_ repository.
+    $ composer require --dev symfony/var-dumper
 
 .. include:: /components/require_autoload.rst.inc
 
 .. note::
 
     If using it inside a Symfony application, make sure that the DebugBundle has
-    been installed (or run ``composer require symfony/debug-bundle`` to install it).
+    been installed (or run ``composer require --dev symfony/debug-bundle`` to install it).
 
 .. _components-var-dumper-dump:
 
@@ -111,11 +109,11 @@ server, which outputs it to its own console or to an HTML file:
 .. code-block:: terminal
 
     # displays the dumped data in the console:
-    $ ./bin/console server:dump
+    $ php bin/console server:dump
       [OK] Server listening on tcp://0.0.0.0:9912
 
     # stores the dumped data in a file using the HTML format:
-    $ ./bin/console server:dump --format=html > dump.html
+    $ php bin/console server:dump --format=html > dump.html
 
 Inside a Symfony application, the output of the dump server is configured with
 the :ref:`dump_destination option <configuration-debug-dump_destination>` of the
@@ -137,37 +135,37 @@ the :ref:`dump_destination option <configuration-debug-dump_destination>` of the
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:debug="http://symfony.com/schema/dic/debug"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
-                http://symfony.com/schema/dic/debug http://symfony.com/schema/dic/debug/debug-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/debug https://symfony.com/schema/dic/debug/debug-1.0.xsd">
 
-            <debug:config dump-destination="tcp://%env(VAR_DUMPER_SERVER)%" />
+            <debug:config dump-destination="tcp://%env(VAR_DUMPER_SERVER)%"/>
         </container>
 
     .. code-block:: php
 
         // config/packages/debug.php
-        $container->loadFromExtension('debug', array(
+        $container->loadFromExtension('debug', [
            'dump_destination' => 'tcp://%env(VAR_DUMPER_SERVER)%',
-        ));
+        ]);
 
 Outside a Symfony application, use the :class:`Symfony\\Component\\VarDumper\\Dumper\\ServerDumper` class::
 
     require __DIR__.'/vendor/autoload.php';
 
-    use Symfony\Component\VarDumper\VarDumper;
     use Symfony\Component\VarDumper\Cloner\VarCloner;
     use Symfony\Component\VarDumper\Dumper\CliDumper;
     use Symfony\Component\VarDumper\Dumper\ContextProvider\CliContextProvider;
     use Symfony\Component\VarDumper\Dumper\ContextProvider\SourceContextProvider;
     use Symfony\Component\VarDumper\Dumper\HtmlDumper;
     use Symfony\Component\VarDumper\Dumper\ServerDumper;
+    use Symfony\Component\VarDumper\VarDumper;
 
     $cloner = new VarCloner();
-    $fallbackDumper = \in_array(\PHP_SAPI, array('cli', 'phpdbg')) ? new CliDumper() : new HtmlDumper();
-    $dumper = new ServerDumper('tcp://127.0.0.1:9912', $fallbackDumper, array(
+    $fallbackDumper = \in_array(\PHP_SAPI, ['cli', 'phpdbg']) ? new CliDumper() : new HtmlDumper();
+    $dumper = new ServerDumper('tcp://127.0.0.1:9912', $fallbackDumper, [
         'cli' => new CliContextProvider(),
         'source' => new SourceContextProvider(),
-    ));
+    ]);
 
     VarDumper::setHandler(function ($var) use ($cloner, $dumper) {
         $dumper->dump($cloner->cloneVar($var));
@@ -221,10 +219,13 @@ option. Read more about this and other options in
 
     If the dumped contents are complex, consider using the local search box to
     look for specific variables or values. First, click anywhere on the dumped
-    contents and then press :kbd:`Ctrl. + F` or :kbd:`Cmd. + F` to make the local
+    contents and then press ``Ctrl. + F`` or ``Cmd. + F`` to make the local
     search box appear. All the common shortcuts to navigate the search results
-    are supported (:kbd:`Ctrl. + G` or :kbd:`Cmd. + G`, :kbd:`F3`, etc.) When
-    finished, press :kbd:`Esc.` to hide the box again.
+    are supported (``Ctrl. + G`` or ``Cmd. + G``, ``F3``, etc.) When
+    finished, press ``Esc.`` to hide the box again.
+
+    If you want to use your browser search input, press ``Ctrl. + F`` or
+    ``Cmd. + F`` again while having focus on VarDumper's search input.
 
 Using the VarDumper Component in your PHPUnit Test Suite
 --------------------------------------------------------
@@ -243,22 +244,52 @@ This will provide you with two new assertions:
     is like the previous method but accepts placeholders in the expected dump,
     based on the ``assertStringMatchesFormat()`` method provided by PHPUnit.
 
+The ``VarDumperTestTrait`` also includes these other methods:
+
+:method:`Symfony\\Component\\VarDumper\\Test\\VarDumperTestTrait::setUpVarDumper`
+    is used to configure the available casters and their options, which is a way
+    to only control the fields you're expecting and allows writing concise tests.
+
+:method:`Symfony\\Component\\VarDumper\\Test\\VarDumperTestTrait::tearDownVarDumper`
+    is called automatically after each case to reset the custom configuration
+    made in ``setUpVarDumper()``.
+
 Example::
 
     use PHPUnit\Framework\TestCase;
+    use Symfony\Component\VarDumper\Test\VarDumperTestTrait;
 
     class ExampleTest extends TestCase
     {
-        use \Symfony\Component\VarDumper\Test\VarDumperTestTrait;
+        use VarDumperTestTrait;
+
+        protected function setUp()
+        {
+            $casters = [
+                \DateTimeInterface::class => static function (\DateTimeInterface $date, array $a, Stub $stub): array {
+                    $stub->class = 'DateTime';
+                    return ['date' => $date->format('d/m/Y')];
+                },
+            ];
+
+            $flags = CliDumper::DUMP_LIGHT_ARRAY | CliDumper::DUMP_COMMA_SEPARATOR;
+
+            // this configures the casters & flags to use for all the tests in this class.
+            // If you need custom configurations per test rather than for the whole class,
+            // call this setUpVarDumper() method from those tests instead.
+            $this->setUpVarDumper($casters, $flags);
+        }
 
         public function testWithDumpEquals()
         {
-            $testedVar = array(123, 'foo');
+            $testedVar = [123, 'foo'];
 
+            // the expected dump contents don't have the default VarDumper structure
+            // because of the custom casters and flags used in the test
             $expectedDump = <<<EOTXT
-    array:2 [
-      0 => 123
-      1 => "foo"
+    [
+      123,
+      "foo",
     ]
     EOTXT;
 
@@ -278,13 +309,13 @@ For simple variables, reading the output should be straightforward.
 Here are some examples showing first a variable defined in PHP,
 then its dump representation::
 
-    $var = array(
+    $var = [
         'a simple string' => "in an array of 5 elements",
         'a float' => 1.0,
         'an integer' => 1,
         'a boolean' => true,
-        'an empty array' => array(),
-    );
+        'an empty array' => [],
+    ];
     dump($var);
 
 .. image:: /_images/components/var_dumper/01-simple.png
@@ -365,11 +396,11 @@ then its dump representation::
 
 .. code-block:: php
 
-    $var = array();
+    $var = [];
     $var[0] = 1;
     $var[1] =& $var[0];
     $var[1] += 1;
-    $var[2] = array("Hard references (circular or sibling)");
+    $var[2] = ["Hard references (circular or sibling)"];
     $var[3] =& $var[2];
     $var[3][] = "are dumped using `&number` prefixes.";
     dump($var);
@@ -407,5 +438,3 @@ Learn More
     :glob:
 
     var_dumper/*
-
-.. _Packagist: https://packagist.org/packages/symfony/var-dumper

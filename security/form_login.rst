@@ -28,7 +28,7 @@ First, enable ``form_login`` under your firewall:
 
             firewalls:
                 main:
-                    anonymous: ~
+                    anonymous: lazy
                     form_login:
                         login_path: login
                         check_path: login
@@ -41,12 +41,14 @@ First, enable ``form_login`` under your firewall:
             xmlns:srv="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <firewall name="main">
-                    <anonymous />
-                    <form-login login-path="login" check-path="login" />
+                    <anonymous lazy="true"/>
+                    <form-login login-path="login" check-path="login"/>
                 </firewall>
             </config>
         </srv:container>
@@ -54,17 +56,17 @@ First, enable ``form_login`` under your firewall:
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
-            'firewalls' => array(
-                'main' => array(
-                    'anonymous'  => null,
-                    'form_login' => array(
+        $container->loadFromExtension('security', [
+            'firewalls' => [
+                'main' => [
+                    'anonymous'  => 'lazy',
+                    'form_login' => [
                         'login_path' => 'login',
                         'check_path' => 'login',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 .. tip::
 
@@ -74,7 +76,7 @@ First, enable ``form_login`` under your firewall:
 
 Now, when the security system initiates the authentication process, it will
 redirect the user to the login form ``/login``. Implementing this login form
-is your job. First, create a new ``SecurityController`` inside a bundle::
+is your job. First, create a new ``SecurityController``::
 
     // src/Controller/SecurityController.php
     namespace App\Controller;
@@ -100,7 +102,7 @@ configuration (``login``):
         class SecurityController extends AbstractController
         {
             /**
-             * @Route("/login", name="login")
+             * @Route("/login", name="login", methods={"GET", "POST"})
              */
             public function login()
             {
@@ -113,6 +115,7 @@ configuration (``login``):
         login:
             path:       /login
             controller: App\Controller\SecurityController::login
+            methods: GET|POST
 
     .. code-block:: xml
 
@@ -121,26 +124,23 @@ configuration (``login``):
         <routes xmlns="http://symfony.com/schema/routing"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/routing
-                http://symfony.com/schema/routing/routing-1.0.xsd">
+                https://symfony.com/schema/routing/routing-1.0.xsd">
 
-            <route id="login" path="/login">
-                <default key="_controller">App\Controller\SecurityController::login</default>
-            </route>
+            <route id="login" path="/login" controller="App\Controller\SecurityController::login" methods="GET|POST"/>
         </routes>
 
     ..  code-block:: php
 
         // config/routes.php
         use App\Controller\SecurityController;
-        use Symfony\Component\Routing\RouteCollection;
-        use Symfony\Component\Routing\Route;
+        use Symfony\Component\Routing\Loader\Configurator\RoutingConfigurator;
 
-        $routes = new RouteCollection();
-        $routes->add('login', new Route('/login', array(
-            '_controller' => array(SecurityController::class, 'login'),
-        )));
-
-        return $routes;
+        return function (RoutingConfigurator $routes) {
+            $routes->add('login', '/login')
+                ->controller([SecurityController::class, 'login'])
+                ->methods(['GET', 'POST'])
+            ;
+        };
 
 Great! Next, add the logic to ``login()`` that displays the login form::
 
@@ -155,10 +155,10 @@ Great! Next, add the logic to ``login()`` that displays the login form::
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return $this->render('security/login.html.twig', array(
+        return $this->render('security/login.html.twig', [
             'last_username' => $lastUsername,
             'error'         => $error,
-        ));
+        ]);
     }
 
 .. note::
@@ -191,15 +191,15 @@ Finally, create the template:
 
     <form action="{{ path('login') }}" method="post">
         <label for="username">Username:</label>
-        <input type="text" id="username" name="_username" value="{{ last_username }}" />
+        <input type="text" id="username" name="_username" value="{{ last_username }}"/>
 
         <label for="password">Password:</label>
-        <input type="password" id="password" name="_password" />
+        <input type="password" id="password" name="_password"/>
 
         {#
             If you want to control the URL the user
             is redirected to on success (more details below)
-            <input type="hidden" name="_target_path" value="/account" />
+            <input type="hidden" name="_target_path" value="/account"/>
         #}
 
         <button type="submit">login</button>
@@ -281,14 +281,16 @@ security component:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="secured_area">
                     <!-- ... -->
-                    <form-login csrf-token-generator="security.csrf.token_manager" />
+                    <form-login csrf-token-generator="security.csrf.token_manager"/>
                 </firewall>
             </config>
         </srv:container>
@@ -296,19 +298,19 @@ security component:
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'secured_area' => array(
+            'firewalls' => [
+                'secured_area' => [
                     // ...
-                    'form_login' => array(
+                    'form_login' => [
                         // ...
                         'csrf_token_generator' => 'security.csrf.token_manager',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 .. _csrf-login-template:
 
@@ -363,7 +365,9 @@ After this, you have protected your login form against CSRF attacks.
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xmlns:srv="http://symfony.com/schema/dic/services"
                 xsi:schemaLocation="http://symfony.com/schema/dic/services
-                    http://symfony.com/schema/dic/services/services-1.0.xsd">
+                    https://symfony.com/schema/dic/services/services-1.0.xsd
+                    http://symfony.com/schema/dic/security
+                    https://symfony.com/schema/dic/security/security-1.0.xsd">
 
                 <config>
                     <!-- ... -->
@@ -380,20 +384,20 @@ After this, you have protected your login form against CSRF attacks.
         .. code-block:: php
 
             // config/packages/security.php
-            $container->loadFromExtension('security', array(
+            $container->loadFromExtension('security', [
                 // ...
 
-                'firewalls' => array(
-                    'secured_area' => array(
+                'firewalls' => [
+                    'secured_area' => [
                         // ...
-                        'form_login' => array(
+                        'form_login' => [
                             // ...
                             'csrf_parameter' => '_csrf_security_token',
                             'csrf_token_id'  => 'a_private_string',
-                        ),
-                    ),
-                ),
-            ));
+                        ],
+                    ],
+                ],
+            ]);
 
 Redirecting after Success
 -------------------------
@@ -437,13 +441,15 @@ a relative/absolute URL or a Symfony route name:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="main">
-                    <form-login default-target-path="after_login_route_name" />
+                    <form-login default-target-path="after_login_route_name"/>
                 </firewall>
             </config>
         </srv:container>
@@ -451,20 +457,20 @@ a relative/absolute URL or a Symfony route name:
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'main' => array(
+            'firewalls' => [
+                'main' => [
                     // ...
 
-                    'form_login' => array(
+                    'form_login' => [
                         // ...
                         'default_target_path' => 'after_login_route_name',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 Always Redirect to the default Page
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -494,14 +500,16 @@ previously requested URL and always redirect to the default page:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="main">
                     <!-- ... -->
-                    <form-login always-use-default-target-path="true" />
+                    <form-login always-use-default-target-path="true"/>
                 </firewall>
             </config>
         </srv:container>
@@ -509,20 +517,20 @@ previously requested URL and always redirect to the default page:
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'main' => array(
+            'firewalls' => [
+                'main' => [
                     // ...
 
-                    'form_login' => array(
+                    'form_login' => [
                         // ...
                         'always_use_default_target_path' => true,
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 .. _control-the-redirect-url-from-inside-the-form:
 
@@ -547,8 +555,8 @@ Defining the redirect URL via POST using a hidden form field:
     <form action="{{ path('login') }}" method="post">
         {# ... #}
 
-        <input type="hidden" name="_target_path" value="{{ path('account') }}" />
-        <input type="submit" name="login" />
+        <input type="hidden" name="_target_path" value="{{ path('account') }}"/>
+        <input type="submit" name="login"/>
     </form>
 
 Using the Referring URL
@@ -582,14 +590,16 @@ parameter is included in the request, you may use the value of the
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="main">
                     <!-- ... -->
-                    <form-login use-referer="true" />
+                    <form-login use-referer="true"/>
                 </firewall>
             </config>
         </srv:container>
@@ -597,19 +607,19 @@ parameter is included in the request, you may use the value of the
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'main' => array(
+            'firewalls' => [
+                'main' => [
                     // ...
-                    'form_login' => array(
+                    'form_login' => [
                         // ...
                         'use_referer' => true,
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 .. note::
 
@@ -648,14 +658,16 @@ option to define a new target via a relative/absolute URL or a Symfony route nam
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="main">
                     <!-- ... -->
-                    <form-login failure-path="login_failure_route_name" />
+                    <form-login failure-path="login_failure_route_name"/>
                 </firewall>
             </config>
         </srv:container>
@@ -663,19 +675,19 @@ option to define a new target via a relative/absolute URL or a Symfony route nam
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'main' => array(
+            'firewalls' => [
+                'main' => [
                     // ...
-                    'form_login' => array(
+                    'form_login' => [
                         // ...
                         'failure_path' => 'login_failure_route_name',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 This option can also be set via the ``_failure_path`` request parameter:
 
@@ -689,8 +701,8 @@ This option can also be set via the ``_failure_path`` request parameter:
     <form action="{{ path('login') }}" method="post">
         {# ... #}
 
-        <input type="hidden" name="_failure_path" value="{{ path('forgot_password') }}" />
-        <input type="submit" name="login" />
+        <input type="hidden" name="_failure_path" value="{{ path('forgot_password') }}"/>
+        <input type="submit" name="login"/>
     </form>
 
 Customizing the Target and Failure Request Parameters
@@ -723,15 +735,17 @@ redirects can be customized using the  ``target_path_parameter`` and
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="main">
                     <!-- ... -->
-                    <form-login target-path-parameter="go_to" />
-                    <form-login failure-path-parameter="back_to" />
+                    <form-login target-path-parameter="go_to"/>
+                    <form-login failure-path-parameter="back_to"/>
                 </firewall>
             </config>
         </srv:container>
@@ -739,19 +753,19 @@ redirects can be customized using the  ``target_path_parameter`` and
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'main' => array(
+            'firewalls' => [
+                'main' => [
                     // ...
-                    'form_login' => array(
+                    'form_login' => [
                         'target_path_parameter' => 'go_to',
                         'failure_path_parameter' => 'back_to',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 Using the above configuration, the query string parameters and hidden form fields
 are now fully customized:
@@ -766,9 +780,9 @@ are now fully customized:
     <form action="{{ path('login') }}" method="post">
         {# ... #}
 
-        <input type="hidden" name="go_to" value="{{ path('dashboard') }}" />
-        <input type="hidden" name="back_to" value="{{ path('forgot_password') }}" />
-        <input type="submit" name="login" />
+        <input type="hidden" name="go_to" value="{{ path('dashboard') }}"/>
+        <input type="hidden" name="back_to" value="{{ path('forgot_password') }}"/>
+        <input type="submit" name="login"/>
     </form>
 
 .. _`Login CSRF attacks`: https://en.wikipedia.org/wiki/Cross-site_request_forgery#Forging_login_requests

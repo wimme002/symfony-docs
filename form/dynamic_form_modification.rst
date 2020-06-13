@@ -10,7 +10,7 @@ how to customize your form based on three common use-cases:
 1) :ref:`form-events-underlying-data`
 
    Example: you have a "Product" form and need to modify/add/remove a field
-    based on the data on the underlying Product being edited.
+   based on the data on the underlying Product being edited.
 
 2) :ref:`form-events-user-data`
 
@@ -53,9 +53,9 @@ a bare form class looks like::
 
         public function configureOptions(OptionsResolver $resolver)
         {
-            $resolver->setDefaults(array(
+            $resolver->setDefaults([
                 'data_class' => Product::class,
-            ));
+            ]);
         }
     }
 
@@ -144,10 +144,10 @@ you can also move the logic for creating the ``name`` field to an
     // src/Form/EventListener/AddNameFieldSubscriber.php
     namespace App\Form\EventListener;
 
-    use Symfony\Component\Form\FormEvent;
-    use Symfony\Component\Form\FormEvents;
     use Symfony\Component\EventDispatcher\EventSubscriberInterface;
     use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use Symfony\Component\Form\FormEvent;
+    use Symfony\Component\Form\FormEvents;
 
     class AddNameFieldSubscriber implements EventSubscriberInterface
     {
@@ -155,7 +155,7 @@ you can also move the logic for creating the ``name`` field to an
         {
             // Tells the dispatcher that you want to listen on the form.pre_set_data
             // event and that the preSetData method should be called.
-            return array(FormEvents::PRE_SET_DATA => 'preSetData');
+            return [FormEvents::PRE_SET_DATA => 'preSetData'];
         }
 
         public function preSetData(FormEvent $event)
@@ -209,11 +209,11 @@ Using an event listener, your form might look like this::
     namespace App\Form\Type;
 
     use Symfony\Component\Form\AbstractType;
-    use Symfony\Component\Form\FormBuilderInterface;
-    use Symfony\Component\Form\FormEvents;
-    use Symfony\Component\Form\FormEvent;
-    use Symfony\Component\Form\Extension\Core\Type\TextType;
     use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+    use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use Symfony\Component\Form\FormBuilderInterface;
+    use Symfony\Component\Form\FormEvent;
+    use Symfony\Component\Form\FormEvents;
 
     class FriendMessageFormType extends AbstractType
     {
@@ -236,11 +236,16 @@ service into the form type so you can get the current user object::
     use Symfony\Component\Security\Core\Security;
     // ...
 
-    private $security;
-
-    public function __construct(Security $security)
+    class FriendMessageFormType extends AbstractType
     {
-        $this->security = $security;
+        private $security;
+
+        public function __construct(Security $security)
+        {
+            $this->security = $security;
+        }
+
+        // ....
     }
 
 Customizing the Form Type
@@ -250,12 +255,11 @@ Now that you have all the basics in place you can use the features of the
 security helper to fill in the listener logic::
 
     // src/Form/Type/FriendMessageFormType.php
-
     use App\Entity\User;
     use Doctrine\ORM\EntityRepository;
     use Symfony\Bridge\Doctrine\Form\Type\EntityType;
-    use Symfony\Component\Form\Extension\Core\Type\TextType;
     use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+    use Symfony\Component\Form\Extension\Core\Type\TextType;
     use Symfony\Component\Security\Core\Security;
     // ...
 
@@ -292,14 +296,14 @@ security helper to fill in the listener logic::
 
                 $form = $event->getForm();
 
-                $formOptions = array(
+                $formOptions = [
                     'class' => User::class,
                     'choice_label' => 'fullName',
                     'query_builder' => function (UserRepository $userRepository) use ($user) {
                         // call a method on your repository that returns the query builder
                         // return $userRepository->createFriendsQueryBuilder($user);
                     },
-                );
+                ];
 
                 // create the field, this is similar the $builder->add()
                 // field name, field type, field options
@@ -322,10 +326,11 @@ security helper to fill in the listener logic::
 Using the Form
 ~~~~~~~~~~~~~~
 
-If you're using :ref:`autowire <services-autowire>` and
-:ref:`autoconfigure <services-autoconfigure>`, your form is ready to be used!
-Otherwise, see :doc:`/form/form_dependencies` to learn how to register your form
-type as a service.
+If you're using the :ref:`default services.yaml configuration <service-container-services-load-example>`,
+your form is ready to be used thanks to :ref:`autowire <services-autowire>` and
+:ref:`autoconfigure <services-autoconfigure>`.
+Otherwise, :ref:`register the form class as a service <service-container-creating-service>`
+and :doc:`tag it </service_container/tags>` with the ``form.type`` tag.
 
 In a controller, create the form like normal::
 
@@ -357,7 +362,7 @@ Dynamic Generation for Submitted Forms
 Another case that can appear is that you want to customize the form specific to
 the data that was submitted by the user. For example, imagine you have a registration
 form for sports gatherings. Some events will allow you to specify your preferred
-position on the field. This would be a ``choice`` field for example. However the
+position on the field. This would be a ``choice`` field for example. However, the
 possible choices will depend on each sport. Football will have attack, defense,
 goalkeeper etc... Baseball will have a pitcher but will not have a goalkeeper. You
 will need the correct options in order for validation to pass.
@@ -368,11 +373,11 @@ sport like this::
     // src/Form/Type/SportMeetupType.php
     namespace App\Form\Type;
 
+    use Symfony\Bridge\Doctrine\Form\Type\EntityType;
     use Symfony\Component\Form\AbstractType;
     use Symfony\Component\Form\FormBuilderInterface;
     use Symfony\Component\Form\FormEvent;
     use Symfony\Component\Form\FormEvents;
-    use Symfony\Bridge\Doctrine\Form\Type\EntityType;
     // ...
 
     class SportMeetupType extends AbstractType
@@ -380,10 +385,10 @@ sport like this::
         public function buildForm(FormBuilderInterface $builder, array $options)
         {
             $builder
-                ->add('sport', EntityType::class, array(
+                ->add('sport', EntityType::class, [
                     'class'       => 'App\Entity\Sport',
                     'placeholder' => '',
-                ))
+                ])
             ;
 
             $builder->addEventListener(
@@ -395,13 +400,13 @@ sport like this::
                     $data = $event->getData();
 
                     $sport = $data->getSport();
-                    $positions = null === $sport ? array() : $sport->getAvailablePositions();
+                    $positions = null === $sport ? [] : $sport->getAvailablePositions();
 
-                    $form->add('position', EntityType::class, array(
+                    $form->add('position', EntityType::class, [
                         'class' => 'App\Entity\Position',
                         'placeholder' => '',
                         'choices' => $positions,
-                    ));
+                    ]);
                 }
             );
         }
@@ -435,8 +440,8 @@ The type would now look like::
     namespace App\Form\Type;
 
     use App\Entity\Sport;
-    use Symfony\Component\Form\FormInterface;
     use Symfony\Bridge\Doctrine\Form\Type\EntityType;
+    use Symfony\Component\Form\FormInterface;
     // ...
 
     class SportMeetupType extends AbstractType
@@ -444,20 +449,20 @@ The type would now look like::
         public function buildForm(FormBuilderInterface $builder, array $options)
         {
             $builder
-                ->add('sport', EntityType::class, array(
+                ->add('sport', EntityType::class, [
                     'class'       => 'App\Entity\Sport',
                     'placeholder' => '',
-                ));
+                ])
             ;
 
             $formModifier = function (FormInterface $form, Sport $sport = null) {
-                $positions = null === $sport ? array() : $sport->getAvailablePositions();
+                $positions = null === $sport ? [] : $sport->getAvailablePositions();
 
-                $form->add('position', EntityType::class, array(
+                $form->add('position', EntityType::class, [
                     'class' => 'App\Entity\Position',
                     'placeholder' => '',
                     'choices' => $positions,
-                ));
+                ]);
             };
 
             $builder->addEventListener(
@@ -504,10 +509,10 @@ your application. Assume that you have a sport meetup creation controller::
     // src/Controller/MeetupController.php
     namespace App\Controller;
 
-    use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-    use Symfony\Component\HttpFoundation\Request;
     use App\Entity\SportMeetup;
     use App\Form\Type\SportMeetupType;
+    use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+    use Symfony\Component\HttpFoundation\Request;
     // ...
 
     class MeetupController extends AbstractController
@@ -523,7 +528,7 @@ your application. Assume that you have a sport meetup creation controller::
 
             return $this->render(
                 'meetup/create.html.twig',
-                array('form' => $form->createView())
+                ['form' => $form->createView()]
             );
         }
 

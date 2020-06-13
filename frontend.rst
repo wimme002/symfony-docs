@@ -28,7 +28,8 @@ to solve the most common Webpack use cases.
 .. tip::
 
     Encore is made by `Symfony`_ and works *beautifully* in Symfony applications.
-    But it can easily be used in any application... in any language!
+    But it can be used in any PHP application and even with other server side
+    programming languages!
 
 .. _encore-toc:
 
@@ -68,22 +69,22 @@ Guides
 
 * :doc:`Using Bootstrap CSS & JS </frontend/encore/bootstrap>`
 * :doc:`Creating Page-Specific CSS/JS </frontend/encore/page-specific-assets>`
-* :doc:`jQuery and Legacy Applications </frontend/encore/legacy-apps>`
+* :doc:`jQuery and Legacy Applications </frontend/encore/legacy-applications>`
 * :doc:`Passing Information from Twig to JavaScript </frontend/encore/server-data>`
 * :doc:`webpack-dev-server and Hot Module Replacement (HMR) </frontend/encore/dev-server>`
 * :doc:`Adding custom loaders & plugins </frontend/encore/custom-loaders-plugins>`
 * :doc:`Advanced Webpack Configuration </frontend/encore/advanced-config>`
+* :doc:`Using Encore in a Virtual Machine </frontend/encore/virtual-machine>`
 
 Issues & Questions
 ..................
 
 * :doc:`FAQ & Common Issues </frontend/encore/faq>`
-* :doc:`/frontend/encore/versus-assetic`
 
 Full API
 ........
 
-* `Full API`_: https://github.com/symfony/webpack-encore/blob/master/index.js
+* `Full API`_
 
 Other Front-End Articles
 ------------------------
@@ -107,6 +108,6 @@ Other Front-End Articles
 .. _`Webpack`: https://webpack.js.org/
 .. _`Webpacker`: https://github.com/rails/webpacker
 .. _`Mix`: https://laravel.com/docs/mix
-.. _`Symfony`: http://symfony.com/
+.. _`Symfony`: https://symfony.com/
 .. _`Full API`: https://github.com/symfony/webpack-encore/blob/master/index.js
 .. _`Webpack Encore screencast series`: https://symfonycasts.com/screencast/webpack-encore

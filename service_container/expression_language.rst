@@ -28,7 +28,10 @@ to another service: ``App\Mailer``. One way to do this is with an expression:
             App\Mail\MailerConfiguration: ~
 
             App\Mailer:
-                arguments: ["@=service('App\\\\Mail\\\\MailerConfiguration').getMailerMethod()"]
+                # the '@=' prefix is required when using expressions for arguments in YAML files
+                arguments: ['@=service("App\\Mail\\MailerConfiguration").getMailerMethod()']
+                # when using double-quoted strings, the backslash needs to be escaped twice (see https://yaml.org/spec/1.2/spec.html#id2787109)
+                # arguments: ["@=service('App\\\\Mail\\\\MailerConfiguration').getMailerMethod()"]
 
     .. code-block:: xml
 
@@ -37,7 +40,7 @@ to another service: ``App\Mailer``. One way to do this is with an expression:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <!-- ... -->
@@ -53,14 +56,19 @@ to another service: ``App\Mailer``. One way to do this is with an expression:
     .. code-block:: php
 
         // config/services.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
         use App\Mail\MailerConfiguration;
         use App\Mailer;
-        use Symfony\Component\ExpressionLanguage\Expression;
 
-        $container->autowire(MailerConfiguration::class);
+        return function(ContainerConfigurator $configurator) {
+            // ...
 
-        $container->autowire(Mailer::class)
-            ->addArgument(new Expression('service("App\\\\Mail\\\\MailerConfiguration").getMailerMethod()'));
+            $services->set(MailerConfiguration::class);
+
+            $services->set(Mailer::class)
+                ->args([expr("service('App\\Mail\\MailerConfiguration').getMailerMethod()")]);
+        };
 
 To learn more about the expression language syntax, see :doc:`/components/expression_language/syntax`.
 
@@ -81,6 +89,7 @@ via a ``container`` variable. Here's another example:
         # config/services.yaml
         services:
             App\Mailer:
+                # the '@=' prefix is required when using expressions for arguments in YAML files
                 arguments: ["@=container.hasParameter('some_param') ? parameter('some_param') : 'default_value'"]
 
     .. code-block:: xml
@@ -90,7 +99,7 @@ via a ``container`` variable. Here's another example:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <service id="App\Mailer">
@@ -102,13 +111,16 @@ via a ``container`` variable. Here's another example:
     .. code-block:: php
 
         // config/services.php
-        use App\Mailer;
-        use Symfony\Component\ExpressionLanguage\Expression;
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-        $container->autowire(Mailer::class)
-            ->addArgument(new Expression(
-                "container.hasParameter('some_param') ? parameter('some_param') : 'default_value'"
-            ));
+        use App\Mailer;
+
+        return function(ContainerConfigurator $configurator) {
+            $services = $configurator->services();
+
+            $services->set(Mailer::class)
+                ->args([expr("container.hasParameter('some_param') ? parameter('some_param') : 'default_value'")]);
+        };
 
 Expressions can be used in ``arguments``, ``properties``, as arguments with
 ``configurator`` and as arguments to ``calls`` (method calls).

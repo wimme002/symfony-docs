@@ -25,6 +25,7 @@ the data can be a ``DateTime`` object, a string, a timestamp or an array.
 |                      | - `hours`_                                                                  |
 |                      | - `html5`_                                                                  |
 |                      | - `input`_                                                                  |
+|                      | - `input_format`_                                                           |
 |                      | - `minutes`_                                                                |
 |                      | - `model_timezone`_                                                         |
 |                      | - `months`_                                                                 |
@@ -42,19 +43,24 @@ the data can be a ``DateTime`` object, a string, a timestamp or an array.
 |                      | - `data_class`_                                                             |
 |                      | - `error_bubbling`_                                                         |
 +----------------------+-----------------------------------------------------------------------------+
-| Inherited            | - `data`_                                                                   |
-| options              | - `disabled`_                                                               |
+| Inherited            | - `attr`_                                                                   |
+| options              | - `data`_                                                                   |
+|                      | - `disabled`_                                                               |
 |                      | - `help`_                                                                   |
 |                      | - `help_attr`_                                                              |
+|                      | - `help_html`_                                                              |
 |                      | - `inherit_data`_                                                           |
 |                      | - `invalid_message`_                                                        |
 |                      | - `invalid_message_parameters`_                                             |
 |                      | - `mapped`_                                                                 |
+|                      | - `row_attr`_                                                               |
 +----------------------+-----------------------------------------------------------------------------+
 | Parent type          | :doc:`FormType </reference/forms/types/form>`                               |
 +----------------------+-----------------------------------------------------------------------------+
 | Class                | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\DateTimeType`      |
 +----------------------+-----------------------------------------------------------------------------+
+
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
 
 Field Options
 -------------
@@ -80,9 +86,9 @@ Sets the label that will be used when rendering the date widget. Setting it to
 
     use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
-    $builder->add('startDateTime', DateTimeType::class, array(
+    $builder->add('startDateTime', DateTimeType::class, [
         'date_label' => 'Starts On',
-    ));
+    ]);
 
 date_widget
 ~~~~~~~~~~~
@@ -102,21 +108,21 @@ it will be used as the **blank value** of all select boxes::
 
     use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
-    $builder->add('startDateTime', DateTimeType::class, array(
+    $builder->add('startDateTime', DateTimeType::class, [
         'placeholder' => 'Select a value',
-    ));
+    ]);
 
 Alternatively, you can use an array that configures different placeholder
 values for the year, month, day, hour, minute and second fields::
 
     use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
-    $builder->add('startDateTime', DateTimeType::class, array(
-        'placeholder' => array(
+    $builder->add('startDateTime', DateTimeType::class, [
+        'placeholder' => [
             'year' => 'Year', 'month' => 'Month', 'day' => 'Day',
             'hour' => 'Hour', 'minute' => 'Minute', 'second' => 'Second',
-        )
-    ));
+        ]
+    ]);
 
 format
 ~~~~~~
@@ -145,13 +151,20 @@ on your underlying object. Valid values are:
 * ``string`` (e.g. ``2011-06-05 12:15:00``)
 * ``datetime`` (a ``DateTime`` object)
 * ``datetime_immutable`` (a ``DateTimeImmutable`` object)
-* ``array`` (e.g. ``array(2011, 06, 05, 12, 15, 0)``)
+* ``array`` (e.g. ``[2011, 06, 05, 12, 15, 0]``)
 * ``timestamp`` (e.g. ``1307276100``)
 
 The value that comes back from the form will also be normalized back into
 this format.
 
 .. include:: /reference/forms/types/options/_date_limitation.rst.inc
+
+input_format
+~~~~~~~~~~~~
+
+**type**: ``string`` **default**: ``Y-m-d H:i:s``
+
+.. include:: /reference/forms/types/options/date_input_format_description.rst.inc
 
 .. include:: /reference/forms/types/options/minutes.rst.inc
 
@@ -171,9 +184,9 @@ Sets the label that will be used when rendering the time widget. Setting it to
 
     use Symfony\Component\Form\Extension\Core\Type\DateTimeType;
 
-    $builder->add('startDateTime', DateTimeType::class, array(
+    $builder->add('startDateTime', DateTimeType::class, [
         'time_label' => 'Starts On',
-    ));
+    ]);
 
 time_widget
 ~~~~~~~~~~~
@@ -223,6 +236,8 @@ Inherited Options
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
+.. include:: /reference/forms/types/options/attr.rst.inc
+
 .. include:: /reference/forms/types/options/data.rst.inc
 
 .. include:: /reference/forms/types/options/disabled.rst.inc
@@ -231,6 +246,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
 
+.. include:: /reference/forms/types/options/help_html.rst.inc
+
 .. include:: /reference/forms/types/options/inherit_data.rst.inc
 
 .. include:: /reference/forms/types/options/invalid_message.rst.inc
@@ -238,6 +255,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 .. include:: /reference/forms/types/options/invalid_message_parameters.rst.inc
 
 .. include:: /reference/forms/types/options/mapped.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc
 
 Field Variables
 ---------------

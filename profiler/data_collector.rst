@@ -24,23 +24,23 @@ request::
     // src/DataCollector/RequestCollector.php
     namespace App\DataCollector;
 
-    use Symfony\Component\HttpKernel\DataCollector\DataCollector;
     use Symfony\Component\HttpFoundation\Request;
     use Symfony\Component\HttpFoundation\Response;
+    use Symfony\Component\HttpKernel\DataCollector\DataCollector;
 
     class RequestCollector extends DataCollector
     {
-        public function collect(Request $request, Response $response, \Exception $exception = null)
+        public function collect(Request $request, Response $response, \Throwable $exception = null)
         {
-            $this->data = array(
+            $this->data = [
                 'method' => $request->getMethod(),
                 'acceptable_content_types' => $request->getAcceptableContentTypes(),
-            );
+            ];
         }
 
         public function reset()
         {
-            $this->data = array();
+            $this->data = [];
         }
 
         public function getName()
@@ -77,7 +77,7 @@ request::
     Returns the collector identifier, which must be unique in the application.
     This value is used later to access the collector information (see
     :doc:`/testing/profiling`) so it's recommended to return a string which is
-    short, lowercased and without white spaces.
+    short, lowercase and without white spaces.
 
 .. _data_collector_tag:
 
@@ -239,7 +239,6 @@ to specify a tag that contains the template:
                         id:       'app.request_collector'
                         # optional priority
                         # priority: 300
-                public: false
 
     .. code-block:: xml
 
@@ -248,10 +247,10 @@ to specify a tag that contains the template:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
-                <service id="App\DataCollector\RequestCollector" public="false">
+                <service id="App\DataCollector\RequestCollector">
                     <!-- priority="300" -->
                     <tag name="data_collector"
                         template="data_collector/template.html.twig"
@@ -264,17 +263,21 @@ to specify a tag that contains the template:
     .. code-block:: php
 
         // config/services.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
         use App\DataCollector\RequestCollector;
 
-        $container
-            ->autowire(RequestCollector::class)
-            ->setPublic(false)
-            ->addTag('data_collector', array(
-                'template' => 'data_collector/template.html.twig',
-                'id'       => 'app.request_collector',
-                // 'priority' => 300,
-            ))
-        ;
+        return function(ContainerConfigurator $configurator) {
+            $services = $configurator->services();
+
+            $services->set(RequestCollector::class)
+                ->autowire()
+                ->tag('data_collector', [
+                    'template' => 'data_collector/template.html.twig',
+                    'id'       => 'app.request_collector',
+                    // 'priority' => 300,
+                ]);
+        };
 
 The position of each panel in the toolbar is determined by the collector priority.
 Priorities are defined as positive or negative integers and they default to ``0``.

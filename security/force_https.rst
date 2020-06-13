@@ -23,10 +23,10 @@ access control:
                 # ...
 
                 access_control:
-                    - { path: ^/secure, roles: ROLE_ADMIN, requires_channel: https }
-                    - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https }
+                    - { path: '^/secure', roles: ROLE_ADMIN, requires_channel: https }
+                    - { path: '^/login', roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https }
                     # catch all other URLs
-                    - { path: ^/, roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https }
+                    - { path: '^/', roles: IS_AUTHENTICATED_ANONYMOUSLY, requires_channel: https }
 
         .. code-block:: xml
 
@@ -36,19 +36,23 @@ access control:
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xmlns:srv="http://symfony.com/schema/dic/services"
                 xsi:schemaLocation="http://symfony.com/schema/dic/services
-                    http://symfony.com/schema/dic/services/services-1.0.xsd">
+                    https://symfony.com/schema/dic/services/services-1.0.xsd
+                    http://symfony.com/schema/dic/security
+                    https://symfony.com/schema/dic/security/security-1.0.xsd">
 
                 <config>
                     <!-- ... -->
 
-                    <rule path="^/secure" role="ROLE_ADMIN" requires_channel="https" />
+                    <rule path="^/secure"
+                        role="ROLE_ADMIN"
+                        requires-channel="https"/>
                     <rule path="^/login"
                         role="IS_AUTHENTICATED_ANONYMOUSLY"
-                        requires_channel="https"
+                        requires-channel="https"
                     />
                     <rule path="^/"
                         role="IS_AUTHENTICATED_ANONYMOUSLY"
-                        requires_channel="https"
+                        requires-channel="https"
                     />
                 </config>
             </srv:container>
@@ -56,27 +60,27 @@ access control:
         .. code-block:: php
 
             // config/packages/security.php
-            $container->loadFromExtension('security', array(
+            $container->loadFromExtension('security', [
                 // ...
 
-                'access_control' => array(
-                    array(
+                'access_control' => [
+                    [
                         'path'             => '^/secure',
-                        'role'             => 'ROLE_ADMIN',
+                        'roles'            => 'ROLE_ADMIN',
                         'requires_channel' => 'https',
-                    ),
-                    array(
+                    ],
+                    [
                         'path'             => '^/login',
                         'role'             => 'IS_AUTHENTICATED_ANONYMOUSLY',
                         'requires_channel' => 'https',
-                    ),
-                    array(
+                    ],
+                    [
                         'path'             => '^/',
                         'role'             => 'IS_AUTHENTICATED_ANONYMOUSLY',
                         'requires_channel' => 'https',
-                    ),
-                ),
-            ));
+                    ],
+                ],
+            ]);
 
 To make life easier while developing, you can also use an environment variable,
 like ``requires_channel: '%env(SECURE_SCHEME)%'``. In your ``.env`` file, set
@@ -85,8 +89,10 @@ like ``requires_channel: '%env(SECURE_SCHEME)%'``. In your ``.env`` file, set
 See :doc:`/security/access_control` for more details about ``access_control``
 in general.
 
-It is also possible to specify using HTTPS in the routing configuration,
-see :doc:`/routing/scheme` for more details.
+.. note::
+
+    An alternative way to enforce HTTP or HTTPS is to use
+    :ref:`the scheme option <routing-force-https>` of a route or group of routes.
 
 .. note::
 

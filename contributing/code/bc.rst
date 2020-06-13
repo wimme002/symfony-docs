@@ -22,7 +22,7 @@ method signature.
 
 Also, not every BC break has the same impact on application code. While some BC
 breaks require you to make significant changes to your classes or your
-architecture, others are fixed as easily as changing the name of a method.
+architecture, others are fixed by changing the name of a method.
 
 That's why we created this page for you. The section "Using Symfony Code" will
 tell you how you can ensure that your application won't break completely when
@@ -32,7 +32,7 @@ The second section, "Working on Symfony Code", is targeted at Symfony
 contributors. This section lists detailed rules that every contributor needs to
 follow to ensure smooth upgrades for our users.
 
-.. warning::
+.. caution::
 
     :doc:`Experimental Features </contributing/code/experimental>` and code
     marked with the ``@internal`` tags are excluded from our Backward
@@ -94,7 +94,7 @@ public methods and properties.
 .. caution::
 
     Classes, properties and methods that bear the tag ``@internal`` as well as
-    the classes located in the various ``*\\Tests\\`` namespaces are an
+    the classes located in the various ``*\Tests\`` namespaces are an
     exception to this rule. They are meant for internal use only and should
     not be accessed by your own code.
 
@@ -204,7 +204,7 @@ Change name                                     No
 Move to parent interface                        Yes
 Add argument without a default value            No
 Add argument with a default value               No
-Remove argument                                 Yes [3]_
+Remove argument                                 No [3]_
 Add default value to an argument                No
 Remove default value of an argument             No
 Add type hint to an argument                    No
@@ -272,7 +272,7 @@ Make final                                          No [6]_
 Move to parent class                                Yes
 Add argument without a default value                No
 Add argument with a default value                   No [7]_ [8]_
-Remove argument                                     Yes [3]_
+Remove argument                                     No [3]_
 Add default value to an argument                    No [7]_ [8]_
 Remove default value of an argument                 No
 Add type hint to an argument                        No [7]_ [8]_
@@ -291,7 +291,7 @@ Make public                                         No [7]_ [8]_
 Move to parent class                                Yes
 Add argument without a default value                No [7]_
 Add argument with a default value                   No [7]_ [8]_
-Remove argument                                     Yes [3]_
+Remove argument                                     No [3]_
 Add default value to an argument                    No [7]_ [8]_
 Remove default value of an argument                 No [7]_
 Add type hint to an argument                        No [7]_ [8]_
@@ -416,8 +416,8 @@ Turn static into non static                         No
 .. [2] The added parent interface must not introduce any new methods that don't
        exist in the interface already.
 
-.. [3] Only the last argument(s) of a method may be removed, as PHP does not
-       care about additional arguments that you pass to a method.
+.. [3] Only the last optional argument(s) of a method may be removed, as PHP
+       does not care about additional arguments that you pass to a method.
 
 .. [4] When changing the parent class, the original parent class must remain an
        ancestor of the class.
@@ -445,9 +445,4 @@ Turn static into non static                         No
 
 .. [9] Allowed for the ``void`` return type.
 
-.. _Semantic Versioning: https://semver.org/
-.. _scalar type: https://php.net/manual/en/function.is-scalar.php
-.. _boolean values: https://php.net/manual/en/function.boolval.php
-.. _string values: https://php.net/manual/en/function.strval.php
-.. _integer values: https://php.net/manual/en/function.intval.php
-.. _float values: https://php.net/manual/en/function.floatval.php
+.. _`Semantic Versioning`: https://semver.org/

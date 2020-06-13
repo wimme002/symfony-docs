@@ -5,10 +5,11 @@ Configuring a Web Server
 ========================
 
 The preferred way to develop your Symfony application is to use
-:doc:`PHP's internal web server </setup/built_in_web_server>`. However,
-when using an older PHP version or when running the application in the production
-environment, you'll need to use a fully-featured web server. This article
-describes several ways to use Symfony with Apache or Nginx.
+:doc:`Symfony Local Web Server </setup/symfony_server>`.
+
+However, when running the application in the production environment, you'll need
+to use a fully-featured web server. This article describes several ways to use
+Symfony with Apache or Nginx.
 
 When using Apache, you can configure PHP as an
 :ref:`Apache module <web-server-apache-mod-php>` or with FastCGI using
@@ -34,20 +35,34 @@ to use PHP :ref:`with Nginx <web-server-nginx>`.
 Adding Rewrite Rules
 --------------------
 
-The easiest way is to install the Apache recipe by executing the following command:
+The easiest way is to install the ``apache`` :ref:`Symfony pack <symfony-packs>`
+by executing the following command:
 
 .. code-block:: terminal
 
     $ composer require symfony/apache-pack
 
-This recipe installs a ``.htaccess`` file in the ``public/`` directory that contains
-the rewrite rules.
+This pack installs a ``.htaccess`` file in the ``public/`` directory that contains
+the rewrite rules needed to serve the Symfony application.
 
-.. tip::
+In production servers, you should move the ``.htaccess`` rules into the main
+Apache configuration file to improve performance. To do so, copy the
+``.htaccess`` contents inside the ``<Directory>`` configuration associated to
+the Symfony application ``public/`` directory (and replace ``AllowOverride All``
+by ``AllowOverride None``):
 
-    A performance improvement can be achieved by moving the rewrite rules from the ``.htaccess``
-    file into the VirtualHost block of your Apache configuration and then changing
-    ``AllowOverride All`` to ``AllowOverride None`` in your VirtualHost block.
+.. code-block:: apache
+
+    <VirtualHost *:80>
+        # ...
+        DocumentRoot /var/www/project/public
+
+        <Directory /var/www/project/public>
+            AllowOverride None
+
+            # Copy .htaccess contents here
+        </Directory>
+    </VirtualHost>
 
 Apache with mod_php/PHP-CGI
 ---------------------------
@@ -92,6 +107,8 @@ and increase web server performance:
         ServerAlias www.domain.tld
 
         DocumentRoot /var/www/project/public
+        DirectoryIndex /index.php
+
         <Directory /var/www/project/public>
             AllowOverride None
             Order Allow,Deny
@@ -120,6 +137,11 @@ and increase web server performance:
         #SetEnv APP_SECRET <app-secret-id>
         #SetEnv DATABASE_URL "mysql://db_user:db_pass@host:3306/db_name"
     </VirtualHost>
+
+.. caution::
+
+    Use ``FallbackResource`` on Apache 2.4.25 or higher, due to a bug which was
+    fixed on that release causing the root ``/`` to hang.
 
 .. tip::
 
@@ -177,10 +199,10 @@ listen on. Each pool can also be run under a different UID and GID:
 Using mod_proxy_fcgi with Apache 2.4
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-If you are running Apache 2.4, you can use ``mod_proxy_fcgi`` to pass
-incoming requests to PHP-FPM. Configure PHP-FPM to listen on a TCP or Unix socket,
-enable ``mod_proxy`` and ``mod_proxy_fcgi`` in your Apache configuration, and
-use the ``SetHandler`` directive to pass requests for PHP files to PHP FPM:
+If you are running Apache 2.4, you can use ``mod_proxy_fcgi`` to pass incoming
+requests to PHP-FPM. Configure PHP-FPM to listen on a TCP or Unix socket, enable
+``mod_proxy`` and ``mod_proxy_fcgi`` in your Apache configuration, and use the
+``SetHandler`` directive to pass requests for PHP files to PHP FPM:
 
 .. code-block:: apache
 
@@ -287,8 +309,15 @@ The **minimum configuration** to get your application running under Nginx is:
             try_files $uri /index.php$is_args$args;
         }
 
+        # optionally disable falling back to PHP script for the asset directories;
+        # nginx will return a 404 error when files are not found instead of passing the
+        # request to Symfony (improves performance but Symfony's 404 page is not displayed)
+        # location /bundles {
+        #     try_files $uri =404;
+        # }
+
         location ~ ^/index\.php(/|$) {
-            fastcgi_pass unix:/var/run/php/php7.1-fpm.sock;
+            fastcgi_pass unix:/var/run/php/php7.2-fpm.sock;
             fastcgi_split_path_info ^(.+\.php)(/.*)$;
             include fastcgi_params;
 
@@ -322,6 +351,11 @@ The **minimum configuration** to get your application running under Nginx is:
         access_log /var/log/nginx/project_access.log;
     }
 
+.. tip::
+
+    If you use NGINX Unit, check out the official article about
+    `How to run Symfony applications using NGINX Unit`_.
+
 .. note::
 
     Depending on your PHP-FPM config, the ``fastcgi_pass`` can also be
@@ -352,3 +386,4 @@ For advanced Nginx configuration options, read the official `Nginx documentation
 .. _`Apache documentation`: https://httpd.apache.org/docs/
 .. _`FastCgiExternalServer`: https://docs.oracle.com/cd/B31017_01/web.1013/q20204/mod_fastcgi.html#FastCgiExternalServer
 .. _`Nginx documentation`: https://www.nginx.com/resources/wiki/start/topics/recipes/symfony/
+.. _`How to run Symfony applications using NGINX Unit`: https://unit.nginx.org/howto/symfony/

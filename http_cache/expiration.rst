@@ -12,18 +12,7 @@ until the cached response expires.
 The expiration model can be accomplished using one of two, nearly identical,
 HTTP headers: ``Expires`` or ``Cache-Control``.
 
-.. sidebar:: Expiration and Validation
-
-    You can use both validation and expiration within the same ``Response``.
-    As expiration wins over validation, you can benefit from the best of
-    both worlds. In other words, by using both expiration and validation, you
-    can instruct the cache to serve the cached content, while checking back
-    at some interval (the expiration) to verify that the content is still valid.
-
-    .. tip::
-
-        You can also define HTTP caching headers for expiration and validation by using
-        annotations. See the `FrameworkExtraBundle documentation`_.
+.. include:: /http_cache/_expiration-and-validation.rst.inc
 
 .. index::
     single: Cache; Cache-Control header
@@ -32,8 +21,8 @@ HTTP headers: ``Expires`` or ``Cache-Control``.
 Expiration with the ``Cache-Control`` Header
 --------------------------------------------
 
-Most of the time, you will use the ``Cache-Control`` header. Recall that the
-``Cache-Control`` header is used to specify many different cache directives::
+Most of the time, you will use the ``Cache-Control`` header, which
+is used to specify many different cache directives::
 
     // sets the number of seconds after which the response
     // should no longer be considered fresh by shared caches
@@ -91,6 +80,5 @@ servers should not send ``Expires`` dates more than one year in the future."
     when the ``s-maxage`` or ``max-age`` directive of the ``Cache-Control``
     header is defined.
 
-.. _`expiration model`: http://tools.ietf.org/html/rfc2616#section-13.2
-.. _`FrameworkExtraBundle documentation`: https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/cache.html
+.. _`expiration model`: https://tools.ietf.org/html/rfc2616#section-13.2
 .. _`RFC 7234 - Caching`: https://tools.ietf.org/html/rfc7234#section-4.2.1

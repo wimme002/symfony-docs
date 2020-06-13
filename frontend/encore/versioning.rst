@@ -25,8 +25,8 @@ To link to these assets, Encore creates two files ``entrypoints.json`` and
 
 .. _load-manifest-files:
 
-Loading Assets from entrypoints.json & manifest.json
-----------------------------------------------------
+Loading Assets from ``entrypoints.json`` & ``manifest.json``
+------------------------------------------------------------
 
 Whenever you run Encore, two configuration files are generated: ``entrypoints.json``
 and ``manifest.json``. Each file is similar, and contains a map to the final, versioned
@@ -64,9 +64,26 @@ an ``img`` tag) to certain assets. If you're using Symfony, just activate the
 That's it! Be sure to wrap each path in the Twig ``asset()`` function
 like normal:
 
-.. code-block:: twig
+.. code-block:: html+twig
 
-    <img src="{{ asset('build/images/logo.png') }}">
+    <img src="{{ asset('build/images/logo.png') }}" alt="ACME logo">
+
+Troubleshooting
+---------------
+
+Asset Versioning and Deployment
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When deploying a new version of your application, versioned assets will include
+a new hash, making the previous assets no longer available. This is usually not
+a problem when deploying applications using a rolling update, blue/green or
+symlink strategies.
+
+However, even when applying those techniques, there could be a lapse of time
+when some publicly/privately cached response requests the previous version of
+the assets. If your application can't afford to serve any broken asset, the best
+solution is to use a CDN (or custom made service) that keeps all the old assets
+cached for some time.
 
 Learn more
 ----------

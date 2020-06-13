@@ -18,13 +18,14 @@ manually, but then you should just use the ``ChoiceType`` directly.
 | Rendered as | can be various tags (see :ref:`forms-reference-choice-tags`)           |
 +-------------+------------------------------------------------------------------------+
 | Options     | - `input`_                                                             |
-|             | - `regions`_                                                           |
+|             | - `intl`_                                                              |
 +-------------+------------------------------------------------------------------------+
 | Overridden  | - `choices`_                                                           |
 | options     |                                                                        |
 +-------------+------------------------------------------------------------------------+
 | Inherited   | from the :doc:`ChoiceType </reference/forms/types/choice>`             |
 | options     |                                                                        |
+|             | - `choice_translation_domain`_                                         |
 |             | - `expanded`_                                                          |
 |             | - `multiple`_                                                          |
 |             | - `placeholder`_                                                       |
@@ -33,6 +34,7 @@ manually, but then you should just use the ``ChoiceType`` directly.
 |             |                                                                        |
 |             | from the :doc:`FormType </reference/forms/types/form>`                 |
 |             |                                                                        |
+|             | - `attr`_                                                              |
 |             | - `data`_                                                              |
 |             | - `disabled`_                                                          |
 |             | - `empty_data`_                                                        |
@@ -40,47 +42,59 @@ manually, but then you should just use the ``ChoiceType`` directly.
 |             | - `error_mapping`_                                                     |
 |             | - `help`_                                                              |
 |             | - `help_attr`_                                                         |
+|             | - `help_html`_                                                         |
 |             | - `label`_                                                             |
 |             | - `label_attr`_                                                        |
 |             | - `label_format`_                                                      |
 |             | - `mapped`_                                                            |
 |             | - `required`_                                                          |
+|             | - `row_attr`_                                                          |
 +-------------+------------------------------------------------------------------------+
 | Parent type | :doc:`ChoiceType </reference/forms/types/choice>`                      |
 +-------------+------------------------------------------------------------------------+
 | Class       | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\TimezoneType` |
 +-------------+------------------------------------------------------------------------+
 
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
+
 Field Options
 -------------
 
-input
-~~~~~
+``input``
+~~~~~~~~~
 
 **type**: ``string`` **default**: ``string``
 
 The format of the *input* data - i.e. the format that the timezone is stored
 on your underlying object. Valid values are:
 
+* ``datetimezone`` (a ``\DateTimeZone`` object)
+* ``intltimezone`` (an ``\IntlTimeZone`` object)
 * ``string`` (e.g. ``America/New_York``)
-* ``datetimezone`` (a ``DateTimeZone`` object)
 
-regions
-~~~~~~~
+intl
+~~~~
 
-**type**: ``int`` **default**: ``\DateTimeZone::ALL``
+**type**: ``boolean`` **default**: ``false``
 
-.. versionadded:: 4.2
+If this option is set to ``true``, the timezone selector will display the
+timezones from the `ICU Project`_ via the :doc:`Intl component </components/intl>`
+instead of the regular PHP timezones.
 
-    This option was deprecated in Symfony 4.2.
+Although both sets of timezones are pretty similar, only the ones from the Intl
+component can be translated to any language. To do so, set the desired locale
+with the ``choice_translation_locale`` option.
 
-The available regions in the timezone choice list. For example: ``DateTimeZone::AMERICA | DateTimeZone::EUROPE``
+.. note::
+
+    The :doc:`Timezone constraint </reference/constraints/Timezone>` can validate
+    both timezone sets and adapts to the selected set automatically.
 
 Overridden Options
 ------------------
 
-choices
-~~~~~~~
+``choices``
+~~~~~~~~~~~
 
 **default**: An array of timezones.
 
@@ -97,6 +111,8 @@ Inherited Options
 
 These options inherit from the :doc:`ChoiceType </reference/forms/types/choice>`:
 
+.. include:: /reference/forms/types/options/choice_translation_domain.rst.inc
+
 .. include:: /reference/forms/types/options/expanded.rst.inc
 
 .. include:: /reference/forms/types/options/multiple.rst.inc
@@ -109,6 +125,8 @@ These options inherit from the :doc:`ChoiceType </reference/forms/types/choice>`
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
+.. include:: /reference/forms/types/options/attr.rst.inc
+
 .. include:: /reference/forms/types/options/data.rst.inc
 
 .. include:: /reference/forms/types/options/disabled.rst.inc
@@ -120,7 +138,7 @@ The actual default value of this option depends on other field options:
 
 * If ``multiple`` is ``false`` and ``expanded`` is ``false``, then ``''``
   (empty string);
-* Otherwise ``array()`` (empty array).
+* Otherwise ``[]`` (empty array).
 
 .. include:: /reference/forms/types/options/empty_data.rst.inc
     :start-after: DEFAULT_PLACEHOLDER
@@ -133,6 +151,8 @@ The actual default value of this option depends on other field options:
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
 
+.. include:: /reference/forms/types/options/help_html.rst.inc
+
 .. include:: /reference/forms/types/options/label.rst.inc
 
 .. include:: /reference/forms/types/options/label_attr.rst.inc
@@ -142,3 +162,7 @@ The actual default value of this option depends on other field options:
 .. include:: /reference/forms/types/options/mapped.rst.inc
 
 .. include:: /reference/forms/types/options/required.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc
+
+.. _`ICU Project`: http://site.icu-project.org/

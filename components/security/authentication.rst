@@ -13,13 +13,12 @@ an *authenticated* token if the supplied credentials were found to be valid.
 The listener should then store the authenticated token using
 :class:`the token storage <Symfony\\Component\\Security\\Core\\Authentication\\Token\\Storage\\TokenStorageInterface>`::
 
-    use Symfony\Component\Security\Http\Firewall\ListenerInterface;
-    use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+    use Symfony\Component\HttpKernel\Event\RequestEvent;
     use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
-    use Symfony\Component\HttpKernel\Event\GetResponseEvent;
+    use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
     use Symfony\Component\Security\Core\Authentication\Token\UsernamePasswordToken;
 
-    class SomeAuthenticationListener implements ListenerInterface
+    class SomeAuthenticationListener
     {
         /**
          * @var TokenStorageInterface
@@ -38,7 +37,7 @@ The listener should then store the authenticated token using
 
         // ...
 
-        public function handle(GetResponseEvent $event)
+        public function __invoke(RequestEvent $event)
         {
             $request = $event->getRequest();
 
@@ -74,7 +73,7 @@ The default authentication manager is an instance of
     use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
     // instances of Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProviderInterface
-    $providers = array(...);
+    $providers = [...];
 
     $authenticationManager = new AuthenticationProviderManager($providers);
 
@@ -100,10 +99,10 @@ Authentication Providers
 
 Each provider (since it implements
 :class:`Symfony\\Component\\Security\\Core\\Authentication\\Provider\\AuthenticationProviderInterface`)
-has a method :method:`Symfony\\Component\\Security\\Core\\Authentication\\Provider\\AuthenticationProviderInterface::supports`
+has a :method:`Symfony\\Component\\Security\\Core\\Authentication\\Provider\\AuthenticationProviderInterface::supports` method
 by which the ``AuthenticationProviderManager``
 can determine if it supports the given token. If this is the case, the
-manager then calls the provider's method :method:`Symfony\\Component\\Security\\Core\\Authentication\\Provider\\AuthenticationProviderInterface::authenticate`.
+manager then calls the provider's :method:`Symfony\\Component\\Security\\Core\\Authentication\\Provider\\AuthenticationProviderInterface::authenticate` method.
 This method should return an authenticated token or throw an
 :class:`Symfony\\Component\\Security\\Core\\Exception\\AuthenticationException`
 (or any other exception extending it).
@@ -127,18 +126,18 @@ to create a hash of the password and returns an authenticated token if the
 password was valid::
 
     use Symfony\Component\Security\Core\Authentication\Provider\DaoAuthenticationProvider;
-    use Symfony\Component\Security\Core\User\UserChecker;
-    use Symfony\Component\Security\Core\User\InMemoryUserProvider;
     use Symfony\Component\Security\Core\Encoder\EncoderFactory;
+    use Symfony\Component\Security\Core\User\InMemoryUserProvider;
+    use Symfony\Component\Security\Core\User\UserChecker;
 
     $userProvider = new InMemoryUserProvider(
-        array(
-            'admin' => array(
+        [
+            'admin' => [
                 // password is "foo"
                 'password' => '5FZ2Z8QIkA7UTZ4BYkoC+GsReLf569mSKDsfods6LYQ8t+a8EW9oaircfMpmaLbPBh4FOBiiFyLfuZmTSUwzZg==',
-                'roles'    => array('ROLE_ADMIN'),
-            ),
-        )
+                'roles'    => ['ROLE_ADMIN'],
+            ],
+        ]
     );
 
     // for some extra checks: is account enabled, locked, expired, etc.
@@ -181,11 +180,11 @@ receives an array of encoders::
     $defaultEncoder = new MessageDigestPasswordEncoder('sha512', true, 5000);
     $weakEncoder = new MessageDigestPasswordEncoder('md5', true, 1);
 
-    $encoders = array(
+    $encoders = [
         User::class       => $defaultEncoder,
         LegacyUser::class => $weakEncoder,
         // ...
-    );
+    ];
     $encoderFactory = new EncoderFactory($encoders);
 
 Each encoder should implement :class:`Symfony\\Component\\Security\\Core\\Encoder\\PasswordEncoderInterface`
@@ -274,24 +273,26 @@ in) is correct, you can use::
 Authentication Events
 ---------------------
 
-The security component provides 4 related authentication events:
+The security component provides the following authentication events:
 
-===============================  ================================================  ==============================================================================
-Name                             Event Constant                                    Argument Passed to the Listener
-===============================  ================================================  ==============================================================================
-security.authentication.success  ``AuthenticationEvents::AUTHENTICATION_SUCCESS``  :class:`Symfony\\Component\\Security\\Core\\Event\\AuthenticationEvent`
-security.authentication.failure  ``AuthenticationEvents::AUTHENTICATION_FAILURE``  :class:`Symfony\\Component\\Security\\Core\\Event\\AuthenticationFailureEvent`
-security.interactive_login       ``SecurityEvents::INTERACTIVE_LOGIN``             :class:`Symfony\\Component\\Security\\Http\\Event\\InteractiveLoginEvent`
-security.switch_user             ``SecurityEvents::SWITCH_USER``                   :class:`Symfony\\Component\\Security\\Http\\Event\\SwitchUserEvent`
-===============================  ================================================  ==============================================================================
+===============================  ================================================================= ==============================================================================
+Name                             Event Constant                                                    Argument Passed to the Listener
+===============================  ================================================================= ==============================================================================
+security.authentication.success  ``AuthenticationEvents::AUTHENTICATION_SUCCESS``                  :class:`Symfony\\Component\\Security\\Core\\Event\\AuthenticationSuccessEvent`
+security.authentication.failure  ``AuthenticationEvents::AUTHENTICATION_FAILURE``                  :class:`Symfony\\Component\\Security\\Core\\Event\\AuthenticationFailureEvent`
+security.interactive_login       ``SecurityEvents::INTERACTIVE_LOGIN``                             :class:`Symfony\\Component\\Security\\Http\\Event\\InteractiveLoginEvent`
+security.switch_user             ``SecurityEvents::SWITCH_USER``                                   :class:`Symfony\\Component\\Security\\Http\\Event\\SwitchUserEvent`
+security.logout_on_change        ``Symfony\Component\Security\Http\Event\DeauthenticatedEvent``    :class:`Symfony\\Component\\Security\\Http\\Event\\DeauthenticatedEvent`
+===============================  ================================================================= ==============================================================================
 
 Authentication Success and Failure Events
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When a provider authenticates the user, a ``security.authentication.success``
-event is dispatched. But beware - this event will fire, for example, on *every*
-request if you have session-based authentication. See ``security.interactive_login``
-below if you need to do something when a user *actually* logs in.
+event is dispatched. But beware - this event may fire, for example, on *every*
+request if you have session-based authentication, if ``always_authenticate_before_granting``
+is enabled or if token is not authenticated before AccessListener is invoked.
+See ``security.interactive_login`` below if you need to do something when a user *actually* logs in.
 
 When a provider attempts authentication but fails (i.e. throws an ``AuthenticationException``),
 a ``security.authentication.failure`` event is dispatched. You could listen on
@@ -314,10 +315,12 @@ order to give your user a welcome flash message every time they log in.
 The ``security.switch_user`` event is triggered every time you activate
 the ``switch_user`` firewall listener.
 
+The ``Symfony\Component\Security\Http\Event\DeauthenticatedEvent`` event is triggered when a token has been deauthenticated
+because of a user change, it can help you doing some clean-up task when a logout has been triggered.
+
 .. seealso::
 
     For more information on switching users, see
     :doc:`/security/impersonating_user`.
 
 .. _`CVE-2013-5750`: https://symfony.com/blog/cve-2013-5750-security-issue-in-fosuserbundle-login-form
-.. _`BasePasswordEncoder::checkPasswordLength`: https://github.com/symfony/symfony/blob/master/src/Symfony/Component/Security/Core/Encoder/BasePasswordEncoder.php

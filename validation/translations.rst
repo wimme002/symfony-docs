@@ -4,9 +4,9 @@
 How to Translate Validation Constraint Messages
 ===============================================
 
-If you're using validation constraints with the Form component, then translating
-the error messages is done in the translation resource for the
-``validators`` :ref:`domain <using-message-domains>`.
+If you're using validation constraints with the Form component, you can translate
+the error messages by creating a translation resource for the
+``validators`` :ref:`domain <translation-resource-locations>`.
 
 To start, suppose you've created a plain-old-PHP object that you need to
 use somewhere in your application::
@@ -53,7 +53,7 @@ property is not empty, add the following:
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping
-                http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+                https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="App\Entity\Author">
                 <property name="name">
@@ -69,8 +69,8 @@ property is not empty, add the following:
         // src/Entity/Author.php
 
         // ...
-        use Symfony\Component\Validator\Mapping\ClassMetadata;
         use Symfony\Component\Validator\Constraints\NotBlank;
+        use Symfony\Component\Validator\Mapping\ClassMetadata;
 
         class Author
         {
@@ -78,9 +78,9 @@ property is not empty, add the following:
 
             public static function loadValidatorMetadata(ClassMetadata $metadata)
             {
-                $metadata->addPropertyConstraint('name', new NotBlank(array(
+                $metadata->addPropertyConstraint('name', new NotBlank([
                     'message' => 'author.name.not_blank',
-                )));
+                ]));
             }
         }
 
@@ -111,9 +111,9 @@ Now, create a ``validators`` catalog file in the ``translations/`` directory:
     .. code-block:: php
 
         // translations/validators.en.php
-        return array(
+        return [
             'author.name.not_blank' => 'Please enter an author name.',
-        );
+        ];
 
 You may need to clear your cache (even in the dev environment) after creating this
 file for the first time.

@@ -56,7 +56,7 @@ table fields.
 
 .. code-block:: terminal
 
-    $ php bin/console doctrine:mapping:import 'App\Entity' annotation --path=src/Entity
+    $ php bin/console doctrine:mapping:import "App\Entity" annotation --path=src/Entity
 
 This command line tool asks Doctrine to introspect the database and generate
 new PHP classes with annotation metadata into ``src/Entity``. This generates two
@@ -64,11 +64,28 @@ files: ``BlogPost.php`` and ``BlogComment.php``.
 
 .. tip::
 
-    It's also possible to generate the metadata files into XML or YAML:
+    It's also possible to generate the metadata files into XML or eventually into YAML:
 
     .. code-block:: terminal
 
-        $ php bin/console doctrine:mapping:import 'App\Entity' xml --path=config/doctrine
+        $ php bin/console doctrine:mapping:import "App\Entity" xml --path=config/doctrine
+
+    In this case, make sure to adapt your mapping configuration accordingly:
+
+    .. code-block:: yaml
+
+        # config/packages/doctrine.yaml
+        doctrine:
+            # ...
+            orm:
+                # ...
+                mappings:
+                    App:
+                        is_bundle: false
+                        type: xml # "yml" is marked as deprecated for doctrine v2.6+ and will be removed in v3
+                        dir: '%kernel.project_dir%/config/doctrine'
+                        prefix: 'App\Entity'
+                        alias: App
 
 Generating the Getters & Setters or PHP Classes
 -----------------------------------------------
@@ -77,7 +94,7 @@ The generated PHP classes now have properties and annotation metadata, but they
 do *not* have any getter or setter methods. If you generated XML or YAML metadata,
 you don't even have the PHP classes!
 
-To generate the missing getter/setter methods (or to *create* the classes if neceesary),
+To generate the missing getter/setter methods (or to *create* the classes if necessary),
 run:
 
 .. code-block:: terminal
@@ -94,5 +111,4 @@ run:
 
 The generated entities are now ready to be used. Have fun!
 
-.. _`Doctrine tools documentation`: http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/tools.html#reverse-engineering
-.. _`doctrine/doctrine#729`: https://github.com/doctrine/DoctrineBundle/issues/729
+.. _`Doctrine tools documentation`: https://www.doctrine-project.org/projects/doctrine-orm/en/current/reference/tools.html#reverse-engineering

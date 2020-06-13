@@ -30,21 +30,26 @@ manually, but then you should just use the ``ChoiceType`` directly.
 |             |                                                                        |
 |             | from the :doc:`FormType </reference/forms/types/form>` type            |
 |             |                                                                        |
+|             | - `attr`_                                                              |
 |             | - `data`_                                                              |
 |             | - `disabled`_                                                          |
 |             | - `empty_data`_                                                        |
 |             | - `help`_                                                              |
 |             | - `help_attr`_                                                         |
+|             | - `help_html`_                                                         |
 |             | - `label`_                                                             |
 |             | - `label_attr`_                                                        |
 |             | - `label_format`_                                                      |
 |             | - `mapped`_                                                            |
 |             | - `required`_                                                          |
+|             | - `row_attr`_                                                          |
 +-------------+------------------------------------------------------------------------+
 | Parent type | :doc:`ChoiceType </reference/forms/types/choice>`                      |
 +-------------+------------------------------------------------------------------------+
 | Class       | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\CurrencyType` |
 +-------------+------------------------------------------------------------------------+
+
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
 
 Field Options
 -------------
@@ -54,10 +59,10 @@ Field Options
 Overridden Options
 ------------------
 
-choices
-~~~~~~~
+``choices``
+~~~~~~~~~~~
 
-**default**: ``Symfony\Component\Intl\Intl::getCurrencyBundle()->getCurrencyNames()``
+**default**: ``Symfony\Component\Intl\Currencies::getNames()``
 
 The choices option defaults to all currencies.
 
@@ -85,6 +90,8 @@ These options inherit from the :doc:`ChoiceType </reference/forms/types/choice>`
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
+.. include:: /reference/forms/types/options/attr.rst.inc
+
 .. include:: /reference/forms/types/options/data.rst.inc
 
 .. include:: /reference/forms/types/options/disabled.rst.inc
@@ -96,7 +103,7 @@ The actual default value of this option depends on other field options:
 
 * If ``multiple`` is ``false`` and ``expanded`` is ``false``, then ``''``
   (empty string);
-* Otherwise ``array()`` (empty array).
+* Otherwise ``[]`` (empty array).
 
 .. include:: /reference/forms/types/options/empty_data.rst.inc
     :start-after: DEFAULT_PLACEHOLDER
@@ -104,6 +111,8 @@ The actual default value of this option depends on other field options:
 .. include:: /reference/forms/types/options/help.rst.inc
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
+
+.. include:: /reference/forms/types/options/help_html.rst.inc
 
 .. include:: /reference/forms/types/options/label.rst.inc
 
@@ -114,5 +123,7 @@ The actual default value of this option depends on other field options:
 .. include:: /reference/forms/types/options/mapped.rst.inc
 
 .. include:: /reference/forms/types/options/required.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc
 
 .. _`3-letter ISO 4217`: https://en.wikipedia.org/wiki/ISO_4217

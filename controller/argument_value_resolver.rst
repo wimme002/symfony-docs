@@ -12,10 +12,13 @@ in order to be recognized. This is done via the
 creating and registering custom argument value resolvers, you can extend this
 functionality.
 
-Functionality Shipped with the HttpKernel
------------------------------------------
+.. _functionality-shipped-with-the-httpkernel:
 
-Symfony ships with five value resolvers in the HttpKernel component:
+Built-In Value Resolvers
+------------------------
+
+Symfony ships with the following value resolvers in the
+:doc:`HttpKernel component </components/http_kernel>`:
 
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\RequestAttributeValueResolver`
     Attempts to find a request attribute that matches the name of the argument.
@@ -29,8 +32,8 @@ Symfony ships with five value resolvers in the HttpKernel component:
     works like :doc:`autowiring </service_container/autowiring>`.
 
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\SessionValueResolver`
-    Injects the configured session class extending ``SessionInterface`` if
-    type-hinted with ``SessionInterface`` or a class extending
+    Injects the configured session class implementing ``SessionInterface`` if
+    type-hinted with ``SessionInterface`` or a class implementing
     ``SessionInterface``.
 
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentResolver\\DefaultValueResolver`
@@ -41,6 +44,19 @@ Symfony ships with five value resolvers in the HttpKernel component:
     Verifies if the request data is an array and will add all of them to the
     argument list. When the action is called, the last (variadic) argument will
     contain all the values of this array.
+
+In addition, some components and official bundles provide other value resolvers:
+
+:class:`Symfony\\Component\\Security\\Http\\Controller\\UserValueResolver`
+    Injects the object that represents the current logged in user if type-hinted
+    with ``UserInterface``. Default value can be set to ``null`` in case
+    the controller can be accessed by anonymous users. It requires installing
+    the :doc:`Security component </components/security>`.
+
+``Psr7ServerRequestResolver``
+    Injects a `PSR-7`_ compliant version of the current request if type-hinted
+    with ``RequestInterface``, ``MessageInterface`` or ``ServerRequestInterface``.
+    It requires installing the `SensioFrameworkExtraBundle`_.
 
 Adding a Custom Value Resolver
 ------------------------------
@@ -85,22 +101,24 @@ type-hinted method arguments:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:sensio-framework-extra="http://symfony.com/schema/dic/symfony_extra"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/symfony_extra
+                https://symfony.com/schema/dic/symfony_extra/symfony_extra-1.0.xsd">
 
             <sensio-framework-extra:config>
-                <request converters="true" auto-convert="false" />
+                <request converters="true" auto-convert="false"/>
             </sensio-framework-extra:config>
         </container>
 
     .. code-block:: php
 
         // config/packages/sensio_framework_extra.php
-        $container->loadFromExtension('sensio_framework_extra', array(
-            'request' => array(
+        $container->loadFromExtension('sensio_framework_extra', [
+            'request' => [
                 'converters' => true,
                 'auto_convert' => false,
-            ),
-        ));
+            ],
+        ]);
 
 Adding a new value resolver requires creating a class that implements
 :class:`Symfony\\Component\\HttpKernel\\Controller\\ArgumentValueResolverInterface`
@@ -190,15 +208,16 @@ and adding a priority.
         <?xml version="1.0" encoding="UTF-8" ?>
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-Instance"
-            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/services
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <!-- ... be sure autowiring is enabled -->
-                <defaults autowire="true" />
+                <defaults autowire="true"/>
                 <!-- ... -->
 
                 <service id="App\ArgumentResolver\UserValueResolver">
-                    <tag name="controller.argument_value_resolver" priority="50" />
+                    <tag name="controller.argument_value_resolver" priority="50"/>
                 </service>
             </services>
 
@@ -210,7 +229,8 @@ and adding a priority.
         use App\ArgumentResolver\UserValueResolver;
 
         $container->autowire(UserValueResolver::class)
-            ->addTag('controller.argument_value_resolver', array('priority' => 50));
+            ->addTag('controller.argument_value_resolver', ['priority' => 50])
+        ;
 
 While adding a priority is optional, it's recommended to add one to make sure
 the expected value is injected. The ``RequestAttributeValueResolver`` has a
@@ -218,7 +238,7 @@ priority of 100. As this one is responsible for fetching attributes from the
 ``Request``, it's recommended to trigger your custom value resolver with a
 lower priority. This makes sure the argument resolvers are not triggered when
 the attribute is present. For instance, when passing the user along a
-subrequests.
+sub-requests.
 
 .. tip::
 
@@ -232,4 +252,6 @@ subrequests.
     resolver and will use the default value if no value was already resolved.
 
 .. _`@ParamConverter`: https://symfony.com/doc/current/bundles/SensioFrameworkExtraBundle/annotations/converters.html
-.. _`yield`: http://php.net/manual/en/language.generators.syntax.php
+.. _`yield`: https://www.php.net/manual/en/language.generators.syntax.php
+.. _`PSR-7`: https://www.php-fig.org/psr/psr-7/
+.. _`SensioFrameworkExtraBundle`: https://github.com/sensiolabs/SensioFrameworkExtraBundle

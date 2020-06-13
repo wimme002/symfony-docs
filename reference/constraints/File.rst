@@ -6,7 +6,7 @@ Validates that a value is a valid "file", which can be one of the following:
 * A string (or object with a ``__toString()`` method) path to an existing
   file;
 * A valid :class:`Symfony\\Component\\HttpFoundation\\File\\File` object
-  (including objects of class :class:`Symfony\\Component\\HttpFoundation\\File\\UploadedFile`).
+  (including objects of :class:`Symfony\\Component\\HttpFoundation\\File\\UploadedFile` class).
 
 This constraint is commonly used in forms with the :doc:`FileType </reference/forms/types/file>`
 form field.
@@ -16,31 +16,29 @@ form field.
     If the file you're validating is an image, try the :doc:`Image </reference/constraints/Image>`
     constraint.
 
-+----------------+---------------------------------------------------------------------+
-| Applies to     | :ref:`property or method <validation-property-target>`              |
-+----------------+---------------------------------------------------------------------+
-| Options        | - `maxSize`_                                                        |
-|                | - `binaryFormat`_                                                   |
-|                | - `mimeTypes`_                                                      |
-|                | - `maxSizeMessage`_                                                 |
-|                | - `mimeTypesMessage`_                                               |
-|                | - `disallowEmptyMessage`_                                           |
-|                | - `notFoundMessage`_                                                |
-|                | - `notReadableMessage`_                                             |
-|                | - `uploadIniSizeErrorMessage`_                                      |
-|                | - `uploadFormSizeErrorMessage`_                                     |
-|                | - `uploadPartialErrorMessage`_                                      |
-|                | - `uploadNoFileErrorMessage`_                                       |
-|                | - `uploadNoTmpDirErrorMessage`_                                     |
-|                | - `uploadCantWriteErrorMessage`_                                    |
-|                | - `uploadExtensionErrorMessage`_                                    |
-|                | - `uploadErrorMessage`_                                             |
-|                | - `payload`_                                                        |
-+----------------+---------------------------------------------------------------------+
-| Class          | :class:`Symfony\\Component\\Validator\\Constraints\\File`           |
-+----------------+---------------------------------------------------------------------+
-| Validator      | :class:`Symfony\\Component\\Validator\\Constraints\\FileValidator`  |
-+----------------+---------------------------------------------------------------------+
+==========  ===================================================================
+Applies to  :ref:`property or method <validation-property-target>`
+Options     - `binaryFormat`_
+            - `disallowEmptyMessage`_
+            - `groups`_
+            - `maxSize`_
+            - `maxSizeMessage`_
+            - `mimeTypes`_
+            - `mimeTypesMessage`_
+            - `notFoundMessage`_
+            - `notReadableMessage`_
+            - `payload`_
+            - `uploadCantWriteErrorMessage`_
+            - `uploadErrorMessage`_
+            - `uploadExtensionErrorMessage`_
+            - `uploadFormSizeErrorMessage`_
+            - `uploadIniSizeErrorMessage`_
+            - `uploadNoFileErrorMessage`_
+            - `uploadNoTmpDirErrorMessage`_
+            - `uploadPartialErrorMessage`_
+Class       :class:`Symfony\\Component\\Validator\\Constraints\\File`
+Validator   :class:`Symfony\\Component\\Validator\\Constraints\\FileValidator`
+==========  ===================================================================
 
 Basic Usage
 -----------
@@ -112,7 +110,7 @@ below a certain file size and a valid PDF, add the following:
         <?xml version="1.0" encoding="UTF-8" ?>
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="App\Entity\Author">
                 <property name="bioFile">
@@ -133,21 +131,21 @@ below a certain file size and a valid PDF, add the following:
         // src/Entity/Author.php
         namespace App\Entity;
 
-        use Symfony\Component\Validator\Mapping\ClassMetadata;
         use Symfony\Component\Validator\Constraints as Assert;
+        use Symfony\Component\Validator\Mapping\ClassMetadata;
 
         class Author
         {
             public static function loadValidatorMetadata(ClassMetadata $metadata)
             {
-                $metadata->addPropertyConstraint('bioFile', new Assert\File(array(
+                $metadata->addPropertyConstraint('bioFile', new Assert\File([
                     'maxSize' => '1024k',
-                    'mimeTypes' => array(
+                    'mimeTypes' => [
                         'application/pdf',
                         'application/x-pdf',
-                    ),
+                    ],
                     'mimeTypesMessage' => 'Please upload a valid PDF',
-                )));
+                ]));
             }
         }
 
@@ -159,32 +157,6 @@ have been specified.
 
 Options
 -------
-
-maxSize
-~~~~~~~
-
-**type**: ``mixed``
-
-If set, the size of the underlying file must be below this file size in
-order to be valid. The size of the file can be given in one of the following
-formats:
-
-+--------+-----------+-----------------+------+
-| Suffix | Unit Name |      value      | e.g. |
-+========+===========+=================+======+
-|        | byte      |          1 byte | 4096 |
-+--------+-----------+-----------------+------+
-| k      | kilobyte  |     1,000 bytes | 200k |
-+--------+-----------+-----------------+------+
-| M      | megabyte  | 1,000,000 bytes |   2M |
-+--------+-----------+-----------------+------+
-| Ki     | kibibyte  |     1,024 bytes | 32Ki |
-+--------+-----------+-----------------+------+
-| Mi     | mebibyte  | 1,048,576 bytes |  8Mi |
-+--------+-----------+-----------------+------+
-
-For more information about the difference between binary and SI prefixes,
-see `Wikipedia: Binary prefix`_.
 
 binaryFormat
 ~~~~~~~~~~~~
@@ -199,6 +171,66 @@ the value defined in the ``maxSize`` option.
 For more information about the difference between binary and SI prefixes,
 see `Wikipedia: Binary prefix`_.
 
+disallowEmptyMessage
+~~~~~~~~~~~~~~~~~~~~
+
+**type**: ``string`` **default**: ``An empty file is not allowed.``
+
+This constraint checks if the uploaded file is empty (i.e. 0 bytes). If it is,
+this message is displayed.
+
+You can use the following parameters in this message:
+
+===============  ==============================================================
+Parameter        Description
+===============  ==============================================================
+``{{ file }}``   Absolute file path
+``{{ name }}``   Base file name
+===============  ==============================================================
+
+.. include:: /reference/constraints/_groups-option.rst.inc
+
+maxSize
+~~~~~~~
+
+**type**: ``mixed``
+
+If set, the size of the underlying file must be below this file size in
+order to be valid. The size of the file can be given in one of the following
+formats:
+
+======  =========  ===============  ========
+Suffix  Unit Name  Value            Example
+======  =========  ===============  ========
+(none)  byte       1 byte           ``4096``
+``k``   kilobyte   1,000 bytes      ``200k``
+``M``   megabyte   1,000,000 bytes  ``2M``
+``Ki``  kibibyte   1,024 bytes      ``32Ki``
+``Mi``  mebibyte   1,048,576 bytes  ``8Mi``
+======  =========  ===============  ========
+
+For more information about the difference between binary and SI prefixes,
+see `Wikipedia: Binary prefix`_.
+
+maxSizeMessage
+~~~~~~~~~~~~~~
+
+**type**: ``string`` **default**: ``The file is too large ({{ size }} {{ suffix }}). Allowed maximum size is {{ limit }} {{ suffix }}.``
+
+The message displayed if the file is larger than the `maxSize`_ option.
+
+You can use the following parameters in this message:
+
+================  =============================================================
+Parameter         Description
+================  =============================================================
+``{{ file }}``    Absolute file path
+``{{ limit }}``   Maximum file size allowed
+``{{ name }}``    Base file name
+``{{ size }}``    File size of the given file
+``{{ suffix }}``  Suffix for the used file size unit (see above)
+================  =============================================================
+
 mimeTypes
 ~~~~~~~~~
 
@@ -210,28 +242,15 @@ of given mime types (if an array).
 
 You can find a list of existing mime types on the `IANA website`_.
 
-maxSizeMessage
-~~~~~~~~~~~~~~
+.. note::
 
-**type**: ``string`` **default**: ``The file is too large ({{ size }} {{ suffix }}). Allowed maximum size is {{ limit }} {{ suffix }}.``
+    When using this constraint on a :doc:`FileType field </reference/forms/types/file>`,
+    the value of the ``mimeTypes`` option is also used in the ``accept``
+    attribute of the related ``<input type="file"/>`` HTML element.
 
-The message displayed if the file is larger than the `maxSize`_ option.
-
-You can use the following parameters in this message:
-
-+------------------+------------------------------------------------+
-| Parameter        | Description                                    |
-+==================+================================================+
-| ``{{ size }}``   | File size of the given file                    |
-+------------------+------------------------------------------------+
-| ``{{ limit }}``  | Maximum file size allowed                      |
-+------------------+------------------------------------------------+
-| ``{{ suffix }}`` | Suffix for the used file size unit (see above) |
-+------------------+------------------------------------------------+
-| ``{{ file }}``   | Absolute file path                             |
-+------------------+------------------------------------------------+
-| ``{{ name }}``   | Base file name                                 |
-+------------------+------------------------------------------------+
+    This behavior is applied only when using :ref:`form type guessing <form-type-guessing>`
+    (i.e. the form type is not defined explicitly in the ``->add()`` method of
+    the form builder) and when the field doesn't define its own ``accept`` value.
 
 mimeTypesMessage
 ~~~~~~~~~~~~~~~~
@@ -243,35 +262,14 @@ per the `mimeTypes`_ option.
 
 You can use the following parameters in this message:
 
-+-----------------+----------------------------------------+
-| Parameter       | Description                            |
-+=================+========================================+
-| ``{{ type }}``  | The MIME type of the given file        |
-+-----------------+----------------------------------------+
-| ``{{ types }}`` | The list of allowed MIME types         |
-+-----------------+----------------------------------------+
-| ``{{ file }}``  | Absolute file path                     |
-+-----------------+----------------------------------------+
-| ``{{ name }}``  | Base file name                         |
-+-----------------+----------------------------------------+
-
-disallowEmptyMessage
-~~~~~~~~~~~~~~~~~~~~
-
-**type**: ``string`` **default**: ``An empty file is not allowed.``
-
-This constraint checks if the uploaded file is empty (i.e. 0 bytes). If it is,
-this message is displayed.
-
-You can use the following parameters in this message:
-
-+----------------+--------------------+
-| Parameter      | Description        |
-+================+====================+
-| ``{{ file }}`` | Absolute file path |
-+----------------+--------------------+
-| ``{{ name }}`` | Base file name     |
-+----------------+--------------------+
+===============  ==============================================================
+Parameter        Description
+===============  ==============================================================
+``{{ file }}``   Absolute file path
+``{{ name }}``   Base file name
+``{{ type }}``   The MIME type of the given file
+``{{ types }}``  The list of allowed MIME types
+===============  ==============================================================
 
 notFoundMessage
 ~~~~~~~~~~~~~~~
@@ -284,11 +282,11 @@ cannot be constructed with an invalid file path.
 
 You can use the following parameters in this message:
 
-+----------------+--------------------+
-| Parameter      | Description        |
-+================+====================+
-| ``{{ file }}`` | Absolute file path |
-+----------------+--------------------+
+===============  ==============================================================
+Parameter        Description
+===============  ==============================================================
+``{{ file }}``   Absolute file path
+===============  ==============================================================
 
 notReadableMessage
 ~~~~~~~~~~~~~~~~~~
@@ -300,29 +298,43 @@ fails when passed the path to the file.
 
 You can use the following parameters in this message:
 
-+----------------+--------------------+
-| Parameter      | Description        |
-+================+====================+
-| ``{{ file }}`` | Absolute file path |
-+----------------+--------------------+
+===============  ==============================================================
+Parameter        Description
+===============  ==============================================================
+``{{ file }}``   Absolute file path
+===============  ==============================================================
 
-uploadIniSizeErrorMessage
-~~~~~~~~~~~~~~~~~~~~~~~~~
+.. include:: /reference/constraints/_payload-option.rst.inc
 
-**type**: ``string`` **default**: ``The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.``
+uploadCantWriteErrorMessage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The message that is displayed if the uploaded file is larger than the ``upload_max_filesize``
-``php.ini`` setting.
+**type**: ``string`` **default**: ``Cannot write temporary file to disk.``
 
-You can use the following parameters in this message:
+The message that is displayed if the uploaded file can't be stored in the
+temporary folder.
 
-+------------------+------------------------------------------------+
-| Parameter        | Description                                    |
-+==================+================================================+
-| ``{{ limit }}``  | Maximum file size allowed                      |
-+------------------+------------------------------------------------+
-| ``{{ suffix }}`` | Suffix for the used file size unit (see above) |
-+------------------+------------------------------------------------+
+This message has no parameters.
+
+uploadErrorMessage
+~~~~~~~~~~~~~~~~~~
+
+**type**: ``string`` **default**: ``The file could not be uploaded.``
+
+The message that is displayed if the uploaded file could not be uploaded
+for some unknown reason.
+
+This message has no parameters.
+
+uploadExtensionErrorMessage
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+**type**: ``string`` **default**: ``A PHP extension caused the upload to fail.``
+
+The message that is displayed if a PHP extension caused the file upload to
+fail.
+
+This message has no parameters.
 
 uploadFormSizeErrorMessage
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -334,14 +346,22 @@ by the HTML file input field.
 
 This message has no parameters.
 
-uploadPartialErrorMessage
+uploadIniSizeErrorMessage
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**type**: ``string`` **default**: ``The file was only partially uploaded.``
+**type**: ``string`` **default**: ``The file is too large. Allowed maximum size is {{ limit }} {{ suffix }}.``
 
-The message that is displayed if the uploaded file is only partially uploaded.
+The message that is displayed if the uploaded file is larger than the ``upload_max_filesize``
+``php.ini`` setting.
 
-This message has no parameters.
+You can use the following parameters in this message:
+
+================  =============================================================
+Parameter         Description
+================  =============================================================
+``{{ limit }}``   Maximum file size allowed
+``{{ suffix }}``  Suffix for the used file size unit (see above)
+================  =============================================================
 
 uploadNoFileErrorMessage
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -362,37 +382,14 @@ missing.
 
 This message has no parameters.
 
-uploadCantWriteErrorMessage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+uploadPartialErrorMessage
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**type**: ``string`` **default**: ``Cannot write temporary file to disk.``
+**type**: ``string`` **default**: ``The file was only partially uploaded.``
 
-The message that is displayed if the uploaded file can't be stored in the
-temporary folder.
-
-This message has no parameters.
-
-uploadExtensionErrorMessage
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-**type**: ``string`` **default**: ``A PHP extension caused the upload to fail.``
-
-The message that is displayed if a PHP extension caused the file upload to
-fail.
+The message that is displayed if the uploaded file is only partially uploaded.
 
 This message has no parameters.
 
-uploadErrorMessage
-~~~~~~~~~~~~~~~~~~
-
-**type**: ``string`` **default**: ``The file could not be uploaded.``
-
-The message that is displayed if the uploaded file could not be uploaded
-for some unknown reason.
-
-This message has no parameters.
-
-.. include:: /reference/constraints/_payload-option.rst.inc
-
-.. _`IANA website`: http://www.iana.org/assignments/media-types/index.html
-.. _`Wikipedia: Binary prefix`: http://en.wikipedia.org/wiki/Binary_prefix
+.. _`IANA website`: http://www.iana.org/assignments/media-types/media-types.xhtml
+.. _`Wikipedia: Binary prefix`: https://en.wikipedia.org/wiki/Binary_prefix

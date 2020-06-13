@@ -5,18 +5,21 @@ How to Forward Requests to another Controller
 =============================================
 
 Though not very common, you can also forward to another controller internally
-with the :method:`Symfony\\Bundle\\FrameworkBundle\\Controller\\AbstractController::forward`
-method. Instead of redirecting the user's browser, this makes an "internal"
-sub-request and calls the defined controller. The ``forward()`` method returns
-the :class:`Symfony\\Component\\HttpFoundation\\Response` object that is returned
+with the ``forward()`` method provided by the
+:class:`Symfony\\Bundle\\FrameworkBundle\\Controller\\AbstractController`
+class.
+
+Instead of redirecting the user's browser, this makes an "internal" sub-request
+and calls the defined controller. The ``forward()`` method returns the
+:class:`Symfony\\Component\\HttpFoundation\\Response` object that is returned
 from *that* controller::
 
     public function index($name)
     {
-        $response = $this->forward('App\Controller\OtherController::fancy', array(
+        $response = $this->forward('App\Controller\OtherController::fancy', [
             'name'  => $name,
             'color' => 'green',
-        ));
+        ]);
 
         // ... further modify the response or return it directly
 

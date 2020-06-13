@@ -21,7 +21,7 @@ under the ``web_profiler`` key in your application configuration.
 
     When using XML, you must use the ``http://symfony.com/schema/dic/webprofiler``
     namespace and the related XSD schema is available at:
-    ``http://symfony.com/schema/dic/webprofiler/webprofiler-1.0.xsd``
+    ``https://symfony.com/schema/dic/webprofiler/webprofiler-1.0.xsd``
 
 .. caution::
 
@@ -41,10 +41,10 @@ excluded_ajax_paths
 
 **type**: ``string`` **default**: ``'^/((index|app(_[\w]+)?)\.php/)?_wdt'``
 
-When the toolbar logs Ajax requests, it matches their URLs against this regular
+When the toolbar logs AJAX requests, it matches their URLs against this regular
 expression. If the URL matches, the request is not displayed in the toolbar. This
-is useful when the application makes lots of Ajax requests or they are heavy and
-you want to exclude some of them.
+is useful when the application makes lots of AJAX requests, or if they are heavy
+and you want to exclude some of them.
 
 .. _intercept_redirects:
 

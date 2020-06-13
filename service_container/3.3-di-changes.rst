@@ -66,20 +66,47 @@ what the file looks like in Symfony 4):
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
-                <defaults autowire="true" autoconfigure="true" public="false" />
+                <defaults autowire="true" autoconfigure="true" public="false"/>
 
-                <prototype namespace="App\" resource="../src/*" exclude="../src/{Entity,Migrations,Tests}" />
+                <prototype namespace="App\" resource="../src/*" exclude="../src/{Entity,Migrations,Tests}"/>
 
                 <prototype namespace="App\Controller\" resource="../src/Controller">
-                    <tag name="controller.service_arguments" />
+                    <tag name="controller.service_arguments"/>
                 </prototype>
 
                 <!-- add more services, or override services that need manual wiring -->
             </services>
         </container>
+
+    .. code-block:: php
+
+        // config/services.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+        return function(ContainerConfigurator $configurator) {
+            // default configuration for services in *this* file
+            $services = $configurator->services()
+                ->defaults()
+                    ->autowire()      // Automatically injects dependencies in your services.
+                    ->autoconfigure() // Automatically registers your services as commands, event subscribers, etc.
+            ;
+
+            // makes classes in src/ available to be used as services
+            // this creates a service per class whose id is the fully-qualified class name
+            $services->load('App\\', '../src/*')
+                ->exclude('../src/{Entity,Migrations,Tests}');
+
+            // controllers are imported separately to make sure services can be injected
+            // as action arguments even if you don't extend any base controller class
+            $services->load('App\\Controller\\', '../src/Controller')
+                ->tag('controller.service_arguments');
+
+            // add more service definitions when explicit configuration is needed
+            // please note that last definitions always *replace* previous ones
+        };
 
 This small bit of configuration contains a paradigm shift of how services
 are configured in Symfony.
@@ -117,14 +144,28 @@ thanks to the following config:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <!-- ... -->
 
-                <prototype namespace="App\" resource="../src/*" exclude="../src/{Entity,Migrations,Tests}" />
+                <prototype namespace="App\" resource="../src/*" exclude="../src/{Entity,Migrations,Tests}"/>
             </services>
         </container>
+
+    .. code-block:: php
+
+        // config/services.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+        return function(ContainerConfigurator $configurator) {
+            // ...
+
+            // makes classes in src/ available to be used as services
+            // this creates a service per class whose id is the fully-qualified class name
+            $services->load('App\\', '../src/*')
+                ->exclude('../src/{Entity,Migrations,Tests}');
+        };
 
 This means that every class in ``src/`` is *available* to be used as a
 service. And thanks to the ``_defaults`` section at the top of the file, all of
@@ -153,7 +194,7 @@ each service or load them all at once with this method.
 
     Ok, but can I exclude some paths that I *know* won't contain services?
 
-Yes! The ``exclude`` key is a glob pattern that can be used to *blacklist* paths
+Yes! The ``exclude`` key is a glob pattern that can be used to *ignore* paths
 that you do *not* want to be included as services. But, since unused services are
 automatically removed from the container, ``exclude`` is not that important. The
 biggest benefit is that those paths are not *tracked* by the container, and so may
@@ -190,16 +231,16 @@ service as an argument to another with the following config:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <service id="app.invoice_generator"
-                    class="App\Service\InvoiceGenerator" />
+                    class="App\Service\InvoiceGenerator"/>
 
                 <service id="app.invoice_mailer"
                     class="App\Service\InvoiceMailer">
 
-                    <argument type="service" id="app.invoice_generator" />
+                    <argument type="service" id="app.invoice_generator"/>
                 </service>
             </services>
         </container>
@@ -213,7 +254,7 @@ service as an argument to another with the following config:
 
         $container->register('app.invoice_generator', InvoiceGenerator::class);
         $container->register('app.invoice_mailer', InvoiceMailer::class)
-            ->setArguments(array(new Reference('app.invoice_generator')));
+            ->setArguments([new Reference('app.invoice_generator')]);
 
 To pass the ``InvoiceGenerator`` as an argument to ``InvoiceMailer``, you needed
 to specify the service's *id* as an argument: ``app.invoice_generator``. Service
@@ -305,13 +346,13 @@ The third big change is that, in a new Symfony 3.3 project, your controllers are
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <!-- ... -->
 
                 <prototype namespace="App\Controller\" resource="../src/Controller">
-                    <tag name="controller.service_arguments" />
+                    <tag name="controller.service_arguments"/>
                 </prototype>
             </services>
         </container>
@@ -319,11 +360,17 @@ The third big change is that, in a new Symfony 3.3 project, your controllers are
     .. code-block:: php
 
         // config/services.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
 
-        // ...
+        return function(ContainerConfigurator $configurator) {
+            // ...
 
-        $definition->addTag('controller.service_arguments');
-        $this->registerClasses($definition, 'App\\Controller\\', '../src/Controller/*');
+            // controllers are imported separately to make sure they're public
+            // and have a tag that allows actions to type-hint services
+            $services->load('App\\Controller\\', '../src/Controller')
+                ->tag('controller.service_arguments');
+        };
+
 
 But, you might not even notice this. First, your controllers *can* still extend
 the same base controller class (``AbstractController``).
@@ -373,12 +420,12 @@ create the class::
     // ...
 
     use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-    use Symfony\Component\HttpKernel\Event\FilterResponseEvent;
+    use Symfony\Component\HttpKernel\Event\ResponseEvent;
     use Symfony\Component\HttpKernel\KernelEvents;
 
     class SetHeaderSusbcriber implements EventSubscriberInterface
     {
-        public function onKernelResponse(FilterResponseEvent $event)
+        public function onKernelResponse(ResponseEvent $event)
         {
             $event->getResponse()->headers->set('X-SYMFONY-3.3', 'Less config');
         }
@@ -393,7 +440,9 @@ create the class::
 
 Great! In Symfony 3.2 or lower, you would now need to register this as a service
 in ``services.yaml`` and tag it with ``kernel.event_subscriber``. In Symfony 3.3,
-you're already done! The service is :ref:`automatically registered <service-33-changes-automatic-registration>`.
+you're already done!
+
+The service is :ref:`automatically registered <service-33-changes-automatic-registration>`.
 And thanks to ``autoconfigure``, Symfony automatically tags the service because
 it implements ``EventSubscriberInterface``.
 
@@ -403,8 +452,8 @@ In this case, you've created a class that implements ``EventSubscriberInterface`
 and registered it as a service. This is more than enough for the container to know
 that you want this to be used as an event subscriber: more configuration is not needed.
 And the tags system is its own, Symfony-specific mechanism. And you can
-always set ``autoconfigure`` to ``false`` in ``services.yaml``, or disable it for a specific
-service.
+always set ``autoconfigure`` to ``false`` in ``services.yaml``, or disable it
+for a specific service.
 
     Does this mean tags are dead? Does this work for all tags?
 
@@ -451,16 +500,31 @@ inherited from an abstract definition:
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
                 <!-- ... -->
 
                 <instanceof id="App\Domain\LoaderInterface" public="true">
-                    <tag name="app.domain_loader" />
+                    <tag name="app.domain_loader"/>
                 </instanceof>
             </services>
         </container>
+
+    .. code-block:: php
+
+        // config/services.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+        use App\Domain\LoaderInterface;
+
+        return function(ContainerConfigurator $configurator) {
+            // ...
+
+            $services->instanceof(LoaderInterface::class)
+                ->public()
+                ->tag('app.domain_loader');
+        };
 
 What about Performance
 ----------------------
@@ -523,9 +587,9 @@ Start by adding a ``_defaults`` section with ``autowire`` and ``autoconfigure``.
 
         # ...
 
-This step does not yet change anything yet: you're already *explicitly* configuring all of your services.
-So, ``autowire`` does nothing. You're also already tagging your services, so
-``autoconfigure`` also doesn't change any existing services.
+You're already *explicitly* configuring all of your services. So, ``autowire``
+does nothing. You're also already tagging your services, so ``autoconfigure``
+also doesn't change any existing services.
 
 You have not added ``public: false`` yet. That will come in a minute.
 
@@ -565,7 +629,7 @@ Start by updating the service ids to class names:
     Services associated with global PHP classes (i.e. not using PHP namespaces)
     must maintain the ``class`` parameter. For example, when using the old Twig
     classes (e.g. ``Twig_Extensions_Extension_Intl`` instead of ``Twig\Extensions\IntlExtension``),
-    you can't redefine the service as ``Twig_Extensions_Extension_Intl: ~`` and
+    you can't redefine the service as ``Twig_Extensions_Extension_Intl: ~`` and
     you must keep the original ``class`` parameter.
 
 .. caution::
@@ -591,11 +655,11 @@ no longer exist. The simplest way to fix this is to find all your old service id
 and update them to the new class id: ``app.github_notifier`` to ``App\Service\GitHubNotifier``.
 
 In large projects, there's a better way: create legacy aliases that map the old id
-to the new id. Create a new ``legacy_aliases.yml`` file:
+to the new id. Create a new ``legacy_aliases.yaml`` file:
 
 .. code-block:: yaml
 
-    # app/config/legacy_aliases.yml
+    # config/legacy_aliases.yaml
     services:
         _defaults:
             public: true
@@ -611,7 +675,7 @@ Then import this at the top of ``services.yaml``:
 
     # config/services.yaml
     + imports:
-    +     - { resource: legacy_aliases.yml }
+    +     - { resource: legacy_aliases.yaml }
 
     # ...
 
@@ -629,13 +693,13 @@ Now you're ready to default all services to be private:
     # ...
 
     services:
-         _defaults:
-             autowire: true
-             autoconfigure: true
-    +          public: false
+        _defaults:
+            autowire: true
+            autoconfigure: true
+    +       public: false
 
 Thanks to this, any services created in this file cannot be fetched directly from
-the container. But, since the old service id's are aliases in a separate file (``legacy_aliases.yml``),
+the container. But, since the old service id's are aliases in a separate file (``legacy_aliases.yaml``),
 these *are* still public. This makes sure the app keeps working.
 
 If you did *not* change the id of some of your services (because there are multiple
@@ -723,7 +787,7 @@ Step 5) Cleanup!
 
 To make sure your application didn't break, you did some extra work. Now it's time
 to clean things up! First, update your application to *not* use the old service id's (the
-ones in ``legacy_aliases.yml``). This means updating any service arguments (e.g.
+ones in ``legacy_aliases.yaml``). This means updating any service arguments (e.g.
 ``@app.github_notifier`` to ``@App\Service\GitHubNotifier``) and updating your
 code to not fetch this service directly from the container. For example:
 
@@ -739,7 +803,7 @@ code to not fetch this service directly from the container. For example:
             // ...
         }
 
-As soon as you do this, you can delete ``legacy_aliases.yml`` and remove its import.
+As soon as you do this, you can delete ``legacy_aliases.yaml`` and remove its import.
 You should do the same thing for any services that you made public, like
 ``app.api_client_github`` and ``app.api_client_sl_connect``. Once you're not fetching
 these directly from the container, you can remove the ``public: true`` flag:

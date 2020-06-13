@@ -45,15 +45,30 @@ want a command to create a user::
 
         protected function execute(InputInterface $input, OutputInterface $output)
         {
-            // ...
+            // ... put here the code to run in your command
+
+            // this method must return an integer number with the "exit status code"
+            // of the command. You can also use these constants to make code more readable
+
+            // return this if there was no problem running the command
+            // (it's equivalent to returning int(0))
+            return Command::SUCCESS;
+
+            // or return this if some error happened during the execution
+            // (it's equivalent to returning int(1))
+            // return Command::FAILURE;
         }
     }
+
+.. versionadded:: 5.1
+
+    The ``Command::SUCCESS`` and ``Command::FAILURE`` constants were introduced
+    in Symfony 5.1.
 
 Configuring the Command
 -----------------------
 
-First of all, you must configure the name of the command in the ``configure()``
-method. Then you can optionally define a help message and the
+You can optionally define a description, help message and the
 :doc:`input options and arguments </console/input>`::
 
     // ...
@@ -92,7 +107,7 @@ available in the ``configure()`` method::
             parent::__construct();
         }
 
-        public function configure()
+        protected function configure()
         {
             $this
                 // ...
@@ -147,6 +162,8 @@ the console::
         // outputs a message without adding a "\n" at the end of the line
         $output->write('You are about to ');
         $output->write('create a user.');
+
+        return Command::SUCCESS;
     }
 
 Now, try executing the command:
@@ -196,6 +213,8 @@ which returns an instance of
             // (this example deletes the last two lines of the section)
             $section1->clear(2);
             // Output is now completely empty!
+
+            return Command::SUCCESS;
         }
     }
 
@@ -236,6 +255,8 @@ Use input options or arguments to pass information to the command::
 
         // retrieve the argument value using getArgument()
         $output->writeln('Username: '.$input->getArgument('username'));
+
+        return Command::SUCCESS;
     }
 
 Now, you can pass the username to the command:
@@ -262,8 +283,8 @@ as a service, you can use normal dependency injection. Imagine you have a
 ``App\Service\UserManager`` service that you want to access::
 
     // ...
-    use Symfony\Component\Console\Command\Command;
     use App\Service\UserManager;
+    use Symfony\Component\Console\Command\Command;
 
     class CreateUserCommand extends Command
     {
@@ -285,6 +306,8 @@ as a service, you can use normal dependency injection. Imagine you have a
             $this->userManager->create($input->getArgument('username'));
 
             $output->writeln('User successfully generated!');
+
+            return Command::SUCCESS;
         }
     }
 
@@ -308,7 +331,8 @@ command:
 
 :method:`Symfony\\Component\\Console\\Command\\Command::execute` *(required)*
     This method is executed after ``interact()`` and ``initialize()``.
-    It contains the logic you want the command to execute.
+    It contains the logic you want the command to execute and it must
+    return an integer which will be used as the command `exit status`_.
 
 .. _console-testing-commands:
 
@@ -323,7 +347,6 @@ console::
     // tests/Command/CreateUserCommandTest.php
     namespace App\Tests\Command;
 
-    use App\Command\CreateUserCommand;
     use Symfony\Bundle\FrameworkBundle\Console\Application;
     use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
     use Symfony\Component\Console\Tester\CommandTester;
@@ -337,19 +360,17 @@ console::
 
             $command = $application->find('app:create-user');
             $commandTester = new CommandTester($command);
-            $commandTester->execute(array(
-                'command'  => $command->getName(),
-
+            $commandTester->execute([
                 // pass arguments to the helper
                 'username' => 'Wouter',
 
                 // prefix the key with two dashes when passing options,
                 // e.g: '--some-option' => 'option_value',
-            ));
+            ]);
 
             // the output of the command in the console
             $output = $commandTester->getDisplay();
-            $this->assertContains('Username: Wouter', $output);
+            $this->assertStringContainsString('Username: Wouter', $output);
 
             // ...
         }
@@ -360,11 +381,26 @@ console::
     You can also test a whole console application by using
     :class:`Symfony\\Component\\Console\\Tester\\ApplicationTester`.
 
+.. caution::
+
+    When testing commands using the ``CommandTester`` class, console events are
+    not dispatched. If you need to test those events, use the
+    :class:`Symfony\\Component\\Console\\Tester\\ApplicationTester` instead.
+
 .. note::
 
     When using the Console component in a standalone project, use
     :class:`Symfony\\Component\\Console\\Application <Symfony\\Component\\Console\\Application>`
     and extend the normal ``\PHPUnit\Framework\TestCase``.
+
+Logging Command Errors
+----------------------
+
+Whenever an exception is thrown while running commands, Symfony adds a log
+message for it including the entire failing command. In addition, Symfony
+registers an :doc:`event subscriber </event_dispatcher>` to listen to the
+:ref:`ConsoleEvents::TERMINATE event <console-events-terminate>` and adds a log
+message whenever a command doesn't finish with the ``0`` `exit status`_.
 
 Learn More
 ----------
@@ -382,3 +418,7 @@ tools capable of helping you with different tasks:
 * :doc:`/components/console/helpers/formatterhelper`: customize the output colorization
 * :doc:`/components/console/helpers/progressbar`: shows a progress bar
 * :doc:`/components/console/helpers/table`: displays tabular data as a table
+* :doc:`/components/console/helpers/debug_formatter`: provides functions to
+  output debug information when running an external program
+
+.. _`exit status`: https://en.wikipedia.org/wiki/Exit_status

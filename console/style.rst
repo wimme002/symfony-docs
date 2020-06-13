@@ -23,11 +23,11 @@ Consider for example the code used to display the title of the following command
 
         protected function execute(InputInterface $input, OutputInterface $output)
         {
-            $output->writeln(array(
+            $output->writeln([
                 '<info>Lorem Ipsum Dolor Sit Amet</>',
                 '<info>==========================</>',
                 '',
-            ));
+            ]);
 
             // ...
         }
@@ -54,9 +54,9 @@ title of the command::
     namespace App\Command;
 
     use Symfony\Component\Console\Command\Command;
-    use Symfony\Component\Console\Style\SymfonyStyle;
     use Symfony\Component\Console\Input\InputInterface;
     use Symfony\Component\Console\Output\OutputInterface;
+    use Symfony\Component\Console\Style\SymfonyStyle;
 
     class GreetCommand extends Command
     {
@@ -113,31 +113,56 @@ Content Methods
         // ...
 
         // consider using arrays when displaying long messages
-        $io->text(array(
+        $io->text([
             'Lorem ipsum dolor sit amet',
             'Consectetur adipiscing elit',
             'Aenean sit amet arcu vitae sem faucibus porta',
-        ));
+        ]);
 
 :method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::listing`
     It displays an unordered list of elements passed as an array::
 
-        $io->listing(array(
+        $io->listing([
             'Element #1 Lorem ipsum dolor sit amet',
             'Element #2 Lorem ipsum dolor sit amet',
             'Element #3 Lorem ipsum dolor sit amet',
-        ));
+        ]);
 
 :method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::table`
     It displays the given array of headers and rows as a compact table::
 
         $io->table(
-            array('Header 1', 'Header 2'),
-            array(
-                array('Cell 1-1', 'Cell 1-2'),
-                array('Cell 2-1', 'Cell 2-2'),
-                array('Cell 3-1', 'Cell 3-2'),
-            )
+            ['Header 1', 'Header 2'],
+            [
+                ['Cell 1-1', 'Cell 1-2'],
+                ['Cell 2-1', 'Cell 2-2'],
+                ['Cell 3-1', 'Cell 3-2'],
+            ]
+        );
+
+:method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::horizontalTable`
+    It displays the given array of headers and rows as a compact horizontal table::
+
+        $io->horizontalTable(
+            ['Header 1', 'Header 2'],
+            [
+                ['Cell 1-1', 'Cell 1-2'],
+                ['Cell 2-1', 'Cell 2-2'],
+                ['Cell 3-1', 'Cell 3-2'],
+            ]
+        );
+
+:method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::definitionList`
+    It displays the given ``key => value`` pairs as a compact list of elements::
+
+        $io->definitionList(
+            'This is a title',
+            ['foo1' => 'bar1'],
+            ['foo2' => 'bar2'],
+            ['foo3' => 'bar3'],
+            new TableSeparator(),
+            'This is another title',
+            ['foo4' => 'bar4']
         );
 
 :method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::newLine`
@@ -165,11 +190,11 @@ Admonition Methods
         // ...
 
         // consider using arrays when displaying long notes
-        $io->note(array(
+        $io->note([
             'Lorem ipsum dolor sit amet',
             'Consectetur adipiscing elit',
             'Aenean sit amet arcu vitae sem faucibus porta',
-        ));
+        ]);
 
 :method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::caution`
     Similar to the ``note()`` helper, but the contents are more prominently
@@ -182,11 +207,11 @@ Admonition Methods
         // ...
 
         // consider using arrays when displaying long caution messages
-        $io->caution(array(
+        $io->caution([
             'Lorem ipsum dolor sit amet',
             'Consectetur adipiscing elit',
             'Aenean sit amet arcu vitae sem faucibus porta',
-        ));
+        ]);
 
 Progress Bar Methods
 ~~~~~~~~~~~~~~~~~~~~
@@ -226,7 +251,7 @@ User Input Methods
 
         $io->ask('What is your name?');
 
-    You can pass the default value as the second argument so the user can simply
+    You can pass the default value as the second argument so the user can
     hit the <Enter> key to select that value::
 
         $io->ask('Where are you from?', 'United States');
@@ -248,7 +273,9 @@ User Input Methods
 
         $io->askHidden('What is your password?');
 
-        // validates the given answer
+    In case you need to validate the given value, pass a callback validator as
+    the second argument::
+
         $io->askHidden('What is your password?', function ($password) {
             if (empty($password)) {
                 throw new \RuntimeException('Password cannot be empty.');
@@ -262,7 +289,7 @@ User Input Methods
 
         $io->confirm('Restart the web server?');
 
-    You can pass the default value as the second argument so the user can simply
+    You can pass the default value as the second argument so the user can
     hit the <Enter> key to select that value::
 
         $io->confirm('Restart the web server?', true);
@@ -271,12 +298,12 @@ User Input Methods
     It asks a question whose answer is constrained to the given list of valid
     answers::
 
-        $io->choice('Select the queue to analyze', array('queue1', 'queue2', 'queue3'));
+        $io->choice('Select the queue to analyze', ['queue1', 'queue2', 'queue3']);
 
-    You can pass the default value as the third argument so the user can simply
+    You can pass the default value as the third argument so the user can
     hit the <Enter> key to select that value::
 
-        $io->choice('Select the queue to analyze', array('queue1', 'queue2', 'queue3'), 'queue1');
+        $io->choice('Select the queue to analyze', ['queue1', 'queue2', 'queue3'], 'queue1');
 
 Result Methods
 ~~~~~~~~~~~~~~
@@ -293,10 +320,10 @@ Result Methods
         // ...
 
         // consider using arrays when displaying long success messages
-        $io->success(array(
+        $io->success([
             'Lorem ipsum dolor sit amet',
             'Consectetur adipiscing elit',
-        ));
+        ]);
 
 :method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::warning`
     It displays the given string or array of strings highlighted as a warning
@@ -310,10 +337,10 @@ Result Methods
         // ...
 
         // consider using arrays when displaying long warning messages
-        $io->warning(array(
+        $io->warning([
             'Lorem ipsum dolor sit amet',
             'Consectetur adipiscing elit',
-        ));
+        ]);
 
 :method:`Symfony\\Component\\Console\\Style\\SymfonyStyle::error`
     It displays the given string or array of strings highlighted as an error
@@ -327,10 +354,10 @@ Result Methods
         // ...
 
         // consider using arrays when displaying long error messages
-        $io->error(array(
+        $io->error([
             'Lorem ipsum dolor sit amet',
             'Consectetur adipiscing elit',
-        ));
+        ]);
 
 Defining your Own Styles
 ------------------------
@@ -352,6 +379,7 @@ Then, instantiate this custom class instead of the default ``SymfonyStyle`` in
 your commands. Thanks to the ``StyleInterface`` you won't need to change the code
 of your commands to change their appearance::
 
+    // src/Command/GreetCommand.php
     namespace App\Console;
 
     use App\Console\CustomStyle;
@@ -366,10 +394,11 @@ of your commands to change their appearance::
         protected function execute(InputInterface $input, OutputInterface $output)
         {
             // Before
-            // $io = new SymfonyStyle($input, $output);
+            $io = new SymfonyStyle($input, $output);
 
             // After
             $io = new CustomStyle($input, $output);
+
             // ...
         }
     }

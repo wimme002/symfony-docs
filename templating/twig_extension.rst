@@ -4,26 +4,19 @@
 How to Write a custom Twig Extension
 ====================================
 
-If you need to create custom Twig functions, filters, tests or more, you'll need
-to create a Twig extension. You can read more about `Twig Extensions`_ in the Twig
-documentation.
+`Twig Extensions`_ allow to create custom functions, filters and more to use
+them in your Twig templates. Before writing your own Twig extension, check if
+the filter/function that you need is already implemented in:
 
-.. tip::
-
-    Before writing your own Twig extension, check if the filter/function that
-    you need is already implemented in the :doc:`Symfony Twig extensions </reference/twig_reference>`.
-    Check also the `official Twig extensions`_, which can be installed in your
-    application as follows:
-
-    .. code-block:: terminal
-
-        $ composer require twig/extensions
+* The `default Twig filters and functions`_;
+* The :doc:`Twig filters and functions added by Symfony </reference/twig_reference>`;
+* The `official Twig extensions`_ related to strings, HTML, Markdown, internationalization, etc.
 
 Create the Extension Class
 --------------------------
 
-Suppose you want to create a new filter called ``price`` that formats a number into
-money:
+Suppose you want to create a new filter called ``price`` that formats a number
+into money:
 
 .. code-block:: twig
 
@@ -44,9 +37,9 @@ Create a class that extends ``AbstractExtension`` and fill in the logic::
     {
         public function getFilters()
         {
-            return array(
-                new TwigFilter('price', array($this, 'formatPrice')),
-            );
+            return [
+                new TwigFilter('price', [$this, 'formatPrice']),
+            ];
         }
 
         public function formatPrice($number, $decimals = 0, $decPoint = '.', $thousandsSep = ',')
@@ -71,9 +64,9 @@ If you want to create a function instead of a filter, define the
     {
         public function getFunctions()
         {
-            return array(
-                new TwigFunction('area', array($this, 'calculateArea')),
-            );
+            return [
+                new TwigFunction('area', [$this, 'calculateArea']),
+            ];
         }
 
         public function calculateArea(int $width, int $length)
@@ -94,23 +87,25 @@ Next, register your class as a service and tag it with ``twig.extension``. If yo
 using the :ref:`default services.yaml configuration <service-container-services-load-example>`,
 you're done! Symfony will automatically know about your new service and add the tag.
 
-Optionally, execute this command to confirm that your new filter was
-successfully registered:
+You can now start using your filter in any Twig template. Optionally, execute
+this command to confirm that your new filter was successfully registered:
 
 .. code-block:: terminal
 
-    $ php bin/console debug:twig --filter=price
+    # display all information about Twig
+    $ php bin/console debug:twig
 
-You can now start using your filter in any Twig template.
+    # display only the information about a specific filter
+    $ php bin/console debug:twig --filter=price
 
 .. _lazy-loaded-twig-extensions:
 
 Creating Lazy-Loaded Twig Extensions
 ------------------------------------
 
-.. versionadded:: 1.26
+.. versionadded:: 1.35
 
-    Support for lazy-loaded extensions was introduced in Twig 1.26.
+    Support for lazy-loaded extensions was introduced in Twig 1.35.0 and 2.4.4.
 
 Including the code of the custom filters/functions in the Twig extension class
 is the simplest way to create extensions. However, Twig must initialize all
@@ -124,7 +119,7 @@ be significant.
 
 That's why Twig allows to decouple the extension definition from its
 implementation. Following the same example as before, the first change would be
-to remove the ``priceFilter()`` method from the extension and update the PHP
+to remove the ``formatPrice()`` method from the extension and update the PHP
 callable defined in ``getFilters()``::
 
     // src/Twig/AppExtension.php
@@ -138,16 +133,16 @@ callable defined in ``getFilters()``::
     {
         public function getFilters()
         {
-            return array(
+            return [
                 // the logic of this filter is now implemented in a different class
-                new TwigFilter('price', array(AppRuntime::class, 'priceFilter')),
-            );
+                new TwigFilter('price', [AppRuntime::class, 'formatPrice']),
+            ];
         }
     }
 
 Then, create the new ``AppRuntime`` class (it's not required but these classes
 are suffixed with ``Runtime`` by convention) and include the logic of the
-previous ``priceFilter()`` method::
+previous ``formatPrice()`` method::
 
     // src/Twig/AppRuntime.php
     namespace App\Twig;
@@ -162,7 +157,7 @@ previous ``priceFilter()`` method::
             // extensions, you'll need to inject services using this constructor
         }
 
-        public function priceFilter($number, $decimals = 0, $decPoint = '.', $thousandsSep = ',')
+        public function formatPrice($number, $decimals = 0, $decPoint = '.', $thousandsSep = ',')
         {
             $price = number_format($number, $decimals, $decPoint, $thousandsSep);
             $price = '$'.$price;
@@ -175,7 +170,7 @@ If you're using the default ``services.yaml`` configuration, this will already
 work! Otherwise, :ref:`create a service <service-container-creating-service>`
 for this class and :doc:`tag your service </service_container/tags>` with ``twig.runtime``.
 
-.. _`official Twig extensions`: https://github.com/twigphp/Twig-extensions
-.. _`global variables`: https://twig.symfony.com/doc/2.x/advanced.html#id1
-.. _`functions`: https://twig.symfony.com/doc/2.x/advanced.html#id2
 .. _`Twig Extensions`: https://twig.symfony.com/doc/2.x/advanced.html#creating-an-extension
+.. _`default Twig filters and functions`: https://twig.symfony.com/doc/2.x/#reference
+.. _`official Twig extensions`: https://github.com/twigphp?q=extra
+.. _`global variables`: https://twig.symfony.com/doc/2.x/advanced.html#id1

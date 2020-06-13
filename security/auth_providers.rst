@@ -21,8 +21,6 @@ use-case matches one of these exactly, they're a great option:
 * :doc:`json_login </security/json_login_setup>`
 * :ref:`X.509 Client Certificate Authentication (x509) <security-x509>`
 * :ref:`REMOTE_USER Based Authentication (remote_user) <security-remote_user>`
-* ``simple_form``
-* ``simple_pre_auth``
 
 .. _security-http_basic:
 
@@ -57,13 +55,15 @@ To support HTTP Basic authentication, add the ``http_basic`` key to your firewal
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="main">
-                    <http-basic realm="Secured Area" />
+                    <http-basic realm="Secured Area"/>
                 </firewall>
             </config>
         </srv:container>
@@ -71,17 +71,17 @@ To support HTTP Basic authentication, add the ``http_basic`` key to your firewal
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'main' => array(
-                    'http_basic' => array(
+            'firewalls' => [
+                'main' => [
+                    'http_basic' => [
                         'realm' => 'Secured Area',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 That's it! Symfony will now be listening for any HTTP basic authentication data.
 To load user information, it will use your configured :doc:`user provider </security/user_provider>`.
@@ -123,14 +123,16 @@ Enable the x509 authentication for a particular firewall in the security configu
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <!-- ... -->
 
                 <firewall name="main">
                     <!-- ... -->
-                    <x509 provider="your_user_provider" />
+                    <x509 provider="your_user_provider"/>
                 </firewall>
             </config>
         </srv:container>
@@ -138,18 +140,18 @@ Enable the x509 authentication for a particular firewall in the security configu
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
+        $container->loadFromExtension('security', [
             // ...
 
-            'firewalls' => array(
-                'main' => array(
+            'firewalls' => [
+                'main' => [
                     // ...
-                    'x509' => array(
+                    'x509' => [
                         'provider' => 'your_user_provider',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 By default, the firewall provides the ``SSL_CLIENT_S_DN_Email`` variable to
 the user provider, and sets the ``SSL_CLIENT_S_DN`` as credentials in the
@@ -199,7 +201,12 @@ corresponding firewall in your security configuration:
         <!-- config/packages/security.xml -->
         <?xml version="1.0" ?>
         <srv:container xmlns="http://symfony.com/schema/dic/security"
-            xmlns:srv="http://symfony.com/schema/dic/services">
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xmlns:srv="http://symfony.com/schema/dic/services"
+            xsi:schemaLocation="http://symfony.com/schema/dic/services
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
 
             <config>
                 <firewall name="main">
@@ -211,15 +218,15 @@ corresponding firewall in your security configuration:
     .. code-block:: php
 
         // config/packages/security.php
-        $container->loadFromExtension('security', array(
-            'firewalls' => array(
-                'main' => array(
-                    'remote_user' => array(
+        $container->loadFromExtension('security', [
+            'firewalls' => [
+                'main' => [
+                    'remote_user' => [
                         'provider' => 'your_user_provider',
-                    ),
-                ),
-            ),
-        ));
+                    ],
+                ],
+            ],
+        ]);
 
 The firewall will then provide the ``REMOTE_USER`` environment variable to
 your user provider. You can change the variable name used by setting the ``user``

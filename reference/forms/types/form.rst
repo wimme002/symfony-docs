@@ -21,6 +21,8 @@ on all types for which ``FormType`` is the parent.
 |           | - `extra_fields_message`_                                          |
 |           | - `help`_                                                          |
 |           | - `help_attr`_                                                     |
+|           | - `help_html`_                                                     |
+|           | - `help_translation_parameters`_                                   |
 |           | - `inherit_data`_                                                  |
 |           | - `invalid_message`_                                               |
 |           | - `invalid_message_parameters`_                                    |
@@ -37,14 +39,21 @@ on all types for which ``FormType`` is the parent.
 | Inherited | - `attr`_                                                          |
 | options   | - `auto_initialize`_                                               |
 |           | - `block_name`_                                                    |
+|           | - `block_prefix`_                                                  |
 |           | - `disabled`_                                                      |
 |           | - `label`_                                                         |
+|           | - `label_html`_                                                    |
+|           | - `row_attr`_                                                      |
 |           | - `translation_domain`_                                            |
+|           | - `label_translation_parameters`_                                  |
+|           | - `attr_translation_parameters`_                                   |
 +-----------+--------------------------------------------------------------------+
 | Parent    | none                                                               |
 +-----------+--------------------------------------------------------------------+
 | Class     | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\FormType` |
 +-----------+--------------------------------------------------------------------+
+
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
 
 Field Options
 -------------
@@ -55,8 +64,8 @@ Field Options
 
 .. _form-option-allow-extra-fields:
 
-allow_extra_fields
-~~~~~~~~~~~~~~~~~~
+``allow_extra_fields``
+~~~~~~~~~~~~~~~~~~~~~~
 
 **type**: ``boolean`` **default**: ``false``
 
@@ -87,7 +96,7 @@ The actual default value of this option depends on other field options:
 
 * If ``data_class`` is set and ``required`` is ``true``, then ``new $data_class()``;
 * If ``data_class`` is set and ``required`` is ``false``, then ``null``;
-* If ``data_class`` is not set and ``compound`` is ``true``, then ``array()``
+* If ``data_class`` is not set and ``compound`` is ``true``, then ``[]``
   (empty array);
 * If ``data_class`` is not set and ``compound`` is ``false``, then ``''``
   (empty string).
@@ -106,6 +115,10 @@ The actual default value of this option depends on other field options:
 .. include:: /reference/forms/types/options/help.rst.inc
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
+
+.. include:: /reference/forms/types/options/help_html.rst.inc
+
+.. include:: /reference/forms/types/options/help_translation_parameters.rst.inc
 
 .. include:: /reference/forms/types/options/inherit_data.rst.inc
 
@@ -154,8 +167,18 @@ of the form type tree (i.e. it cannot be used as a form type on its own).
 
 .. include:: /reference/forms/types/options/block_name.rst.inc
 
+.. include:: /reference/forms/types/options/block_prefix.rst.inc
+
 .. include:: /reference/forms/types/options/disabled.rst.inc
 
 .. include:: /reference/forms/types/options/label.rst.inc
 
+.. include:: /reference/forms/types/options/label_html.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc
+
 .. include:: /reference/forms/types/options/translation_domain.rst.inc
+
+.. include:: /reference/forms/types/options/label_translation_parameters.rst.inc
+
+.. include:: /reference/forms/types/options/attr_translation_parameters.rst.inc

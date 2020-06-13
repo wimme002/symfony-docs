@@ -52,8 +52,8 @@ implements the :class:`Symfony\\Component\\Config\\Definition\\ConfigurationInte
 
     namespace Acme\DatabaseConfiguration;
 
-    use Symfony\Component\Config\Definition\ConfigurationInterface;
     use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+    use Symfony\Component\Config\Definition\ConfigurationInterface;
 
     class DatabaseConfiguration implements ConfigurationInterface
     {
@@ -67,10 +67,6 @@ implements the :class:`Symfony\\Component\\Config\\Definition\\ConfigurationInte
             return $treeBuilder;
         }
     }
-
-.. versionadded:: 4.2
-
-    Not passing the root node name to ``TreeBuilder`` was deprecated in Symfony 4.2.
 
 Adding Node Definitions to the Tree
 -----------------------------------
@@ -147,7 +143,7 @@ values::
     $rootNode
         ->children()
             ->enumNode('delivery')
-                ->values(array('standard', 'expedited', 'priority'))
+                ->values(['standard', 'expedited', 'priority'])
             ->end()
         ->end()
     ;
@@ -288,8 +284,8 @@ Or the following XML configuration:
 
 .. code-block:: xml
 
-    <connection table="symfony" user="root" password="null" />
-    <connection table="foo" user="root" password="pa$$" />
+    <connection table="symfony" user="root" password="null"/>
+    <connection table="foo" user="root" password="pa$$"/>
 
 The processed configuration is::
 
@@ -350,6 +346,13 @@ In order to maintain the array keys use the ``useAttributeAsKey()`` method::
         ->end()
     ;
 
+.. note::
+
+    In YAML, the ``'name'`` argument of ``useAttributeAsKey()`` has a special
+    meaning and refers to the key of the map (``sf_connection`` and ``default``
+    in this example). If a child node was defined for the ``connections`` node
+    with the key ``name``, then that key of the map would be lost.
+
 The argument of this method (``name`` in the example above) defines the name of
 the attribute added to each XML node to differentiate them. Now you can use the
 same YAML configuration shown before or the following XML configuration:
@@ -357,9 +360,9 @@ same YAML configuration shown before or the following XML configuration:
 .. code-block:: xml
 
     <connection name="sf_connection"
-        table="symfony" user="root" password="null" />
+        table="symfony" user="root" password="null"/>
     <connection name="default"
-        table="foo" user="root" password="pa$$" />
+        table="foo" user="root" password="pa$$"/>
 
 In both cases, the processed configuration maintains the ``sf_connection`` and
 ``default`` keys::
@@ -396,7 +399,7 @@ has a certain value:
     (``null``, ``true``, ``false``), provide a replacement value in case
     the value is ``*.``
 
-.. code-block:: php
+The following example shows these methods in practice::
 
     $rootNode
         ->children()
@@ -432,6 +435,13 @@ has a certain value:
 Deprecating the Option
 ----------------------
 
+.. versionadded:: 5.1
+
+    The signature of the ``setDeprecated()`` method changed from
+    ``setDeprecated(?string $message)`` to
+    ``setDeprecated(string $package, string $version, ?string $message)``
+    in Symfony 5.1.
+
 You can deprecate options using the
 :method:`Symfony\\Component\\Config\\Definition\\Builder\\NodeDefinition::setDeprecated`
 method::
@@ -440,11 +450,15 @@ method::
         ->children()
             ->integerNode('old_option')
                 // this outputs the following generic deprecation message:
-                // The child node "old_option" at path "..." is deprecated.
-                ->setDeprecated()
+                // Since acme/package 1.2: The child node "old_option" at path "..." is deprecated.
+                ->setDeprecated('acme/package', '1.2')
 
                 // you can also pass a custom deprecation message (%node% and %path% placeholders are available):
-                ->setDeprecated('The "%node%" option is deprecated. Use "new_config_option" instead.')
+                ->setDeprecated(
+                    'acme/package',
+                    '1.2',
+                    'The "%node%" option is deprecated. Use "new_config_option" instead.'
+                )
             ->end()
         ->end()
     ;
@@ -476,14 +490,14 @@ In YAML you may have:
 .. code-block:: yaml
 
     # This value is only used for the search results page.
-    entries_per_page:     25
+    entries_per_page: 25
 
 and in XML:
 
 .. code-block:: xml
 
     <!-- entries-per-page: This value is only used for the search results page. -->
-    <config entries-per-page="25" />
+    <config entries-per-page="25"/>
 
 Optional Sections
 -----------------
@@ -502,9 +516,9 @@ methods::
     // is equivalent to
 
     $arrayNode
-        ->treatFalseLike(array('enabled' => false))
-        ->treatTrueLike(array('enabled' => true))
-        ->treatNullLike(array('enabled' => true))
+        ->treatFalseLike(['enabled' => false])
+        ->treatTrueLike(['enabled' => true])
+        ->treatNullLike(['enabled' => true])
         ->children()
             ->booleanNode('enabled')
                 ->defaultFalse()
@@ -531,7 +545,7 @@ For all nodes:
 Appending Sections
 ------------------
 
-If you have a complex configuration to validate then the tree can grow to
+If you have a complex configuration to validate, then the tree can grow to
 be large and you may want to split it up into sections. You can do this
 by making a section a separate node and then appending it into the main
 tree with ``append()``::
@@ -702,8 +716,8 @@ and sometimes only:
 
     <connection>default</connection>
 
-By default ``connection`` would be an array in the first case and a string
-in the second making it difficult to validate. You can ensure it is always
+By default, ``connection`` would be an array in the first case and a string
+in the second, making it difficult to validate. You can ensure it is always
 an array with ``fixXmlConfig()``.
 
 You can further control the normalization process if you need to. For example,
@@ -733,7 +747,7 @@ By changing a string value into an associative array with ``name`` as the key::
             ->arrayNode('connection')
                 ->beforeNormalization()
                     ->ifString()
-                    ->then(function ($v) { return array('name' => $v); })
+                    ->then(function ($v) { return ['name' => $v]; })
                 ->end()
                 ->children()
                     ->scalarNode('name')->isRequired()
@@ -758,7 +772,7 @@ The builder is used for adding advanced validation rules to node definitions, li
                     ->scalarNode('driver')
                         ->isRequired()
                         ->validate()
-                            ->ifNotInArray(array('mysql', 'sqlite', 'mssql'))
+                            ->ifNotInArray(['mysql', 'sqlite', 'mssql'])
                             ->thenInvalid('Invalid database driver %s')
                         ->end()
                     ->end()
@@ -838,9 +852,9 @@ any value is not of the expected type, is mandatory and yet undefined, or
 could not be validated in some other way, an exception will be thrown.
 Otherwise the result is a clean array of configuration values::
 
-    use Symfony\Component\Yaml\Yaml;
-    use Symfony\Component\Config\Definition\Processor;
     use Acme\DatabaseConfiguration;
+    use Symfony\Component\Config\Definition\Processor;
+    use Symfony\Component\Yaml\Yaml;
 
     $config = Yaml::parse(
         file_get_contents(__DIR__.'/src/Matthias/config/config.yaml')
@@ -849,7 +863,7 @@ Otherwise the result is a clean array of configuration values::
         file_get_contents(__DIR__.'/src/Matthias/config/config_extra.yaml')
     );
 
-    $configs = array($config, $extraConfig);
+    $configs = [$config, $extraConfig];
 
     $processor = new Processor();
     $databaseConfiguration = new DatabaseConfiguration();

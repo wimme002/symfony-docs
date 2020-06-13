@@ -71,15 +71,15 @@ username and the password are different only if all other validation passes
         <?xml version="1.0" encoding="UTF-8" ?>
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="App\Entity\User">
                 <property name="username">
-                    <constraint name="NotBlank" />
+                    <constraint name="NotBlank"/>
                 </property>
 
                 <property name="password">
-                    <constraint name="NotBlank" />
+                    <constraint name="NotBlank"/>
                 </property>
 
                 <getter property="passwordSafe">
@@ -103,8 +103,8 @@ username and the password are different only if all other validation passes
         // src/Entity/User.php
         namespace App\Entity;
 
-        use Symfony\Component\Validator\Mapping\ClassMetadata;
         use Symfony\Component\Validator\Constraints as Assert;
+        use Symfony\Component\Validator\Mapping\ClassMetadata;
 
         class User
         {
@@ -113,12 +113,12 @@ username and the password are different only if all other validation passes
                 $metadata->addPropertyConstraint('username', new Assert\NotBlank());
                 $metadata->addPropertyConstraint('password', new Assert\NotBlank());
 
-                $metadata->addGetterConstraint('passwordSafe', new Assert\IsTrue(array(
+                $metadata->addGetterConstraint('passwordSafe', new Assert\IsTrue([
                     'message' => 'The password cannot match your first name',
-                    'groups'  => array('Strict'),
-                )));
+                    'groups'  => ['Strict'],
+                ]));
 
-                $metadata->setGroupSequence(array('User', 'Strict'));
+                $metadata->setGroupSequence(['User', 'Strict']);
             }
         }
 
@@ -139,6 +139,13 @@ that group are valid, the second group, ``Strict``, will be validated.
     infinite recursion (as the ``Default`` group references the group
     sequence, which will contain the ``Default`` group which references the
     same group sequence, ...).
+
+.. caution::
+
+    Calling ``validate()`` with a group in the sequence (``Strict`` in previous
+    example) will cause a validation **only** with that group and not with all
+    the groups in the sequence. This is because sequence is now referred to
+    ``Default`` group validation.
 
 You can also define a group sequence in the ``validation_groups`` form option::
 
@@ -212,11 +219,11 @@ entity and a new constraint group called ``Premium``:
         <?xml version="1.0" encoding="UTF-8" ?>
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="App\Entity\User">
                 <property name="name">
-                    <constraint name="NotBlank" />
+                    <constraint name="NotBlank"/>
                 </property>
 
                 <property name="creditCard">
@@ -252,10 +259,10 @@ entity and a new constraint group called ``Premium``:
             public static function loadValidatorMetadata(ClassMetadata $metadata)
             {
                 $metadata->addPropertyConstraint('name', new Assert\NotBlank());
-                $metadata->addPropertyConstraint('creditCard', new Assert\CardScheme(array(
-                    'schemes' => array('VISA'),
-                    'groups'  => array('Premium'),
-                )));
+                $metadata->addPropertyConstraint('creditCard', new Assert\CardScheme([
+                    'schemes' => ['VISA'],
+                    'groups'  => ['Premium'],
+                ]));
             }
         }
 
@@ -280,12 +287,12 @@ method, which should return an array of groups to use::
             // when returning a simple array, if there's a violation in any group
             // the rest of groups are not validated. E.g. if 'User' fails,
             // 'Premium' and 'Api' are not validated:
-            return array('User', 'Premium', 'Api');
+            return ['User', 'Premium', 'Api'];
 
             // when returning a nested array, all the groups included in each array
             // are validated. E.g. if 'User' fails, 'Premium' is also validated
             // (and you'll get its violations too) but 'Api' won't be validated:
-            return array(array('User', 'Premium'), 'Api');
+            return [['User', 'Premium'], 'Api'];
         }
     }
 
@@ -322,10 +329,10 @@ provides a sequence of groups to be validated:
         <constraint-mapping xmlns="http://symfony.com/schema/dic/constraint-mapping"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xsi:schemaLocation="http://symfony.com/schema/dic/constraint-mapping
-                http://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
+                https://symfony.com/schema/dic/constraint-mapping/constraint-mapping-1.0.xsd">
 
             <class name="App\Entity\User">
-                <group-sequence-provider />
+                <group-sequence-provider/>
                 <!-- ... -->
             </class>
         </constraint-mapping>
@@ -348,3 +355,14 @@ provides a sequence of groups to be validated:
                 // ...
             }
         }
+
+How to Sequentially Apply Constraints on a Single Property
+----------------------------------------------------------
+
+Sometimes, you may want to apply constraints sequentially on a single
+property. The :doc:`Sequentially constraint</reference/constraints/Sequentially>`
+can solve this for you in a more straightforward way than using a ``GroupSequence``.
+
+.. versionadded:: 5.1
+
+    The ``Sequentially`` constraint was introduced in Symfony 5.1.

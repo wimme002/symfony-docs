@@ -4,18 +4,20 @@
 Custom Authentication System with Guard (API Token Example)
 ===========================================================
 
-Whether you need to build a traditional login form, an API token authentication system
-or you need to integrate with some proprietary single-sign-on system, the Guard
-component can make it easy... and fun!
-
 Guard authentication can be used to:
 
-* :doc:`Build a Login Form </security/form_login_setup>`,
-* Create an API token authentication system (done on this page!)
-* `Social Authentication`_ (or use `HWIOAuthBundle`_ for a robust, but non-Guard solution)
+* :doc:`Build a Login Form </security/form_login_setup>`
+* Create an API token authentication system (see below)
+* `Social Authentication`_ (or use `HWIOAuthBundle`_ for a robust non-Guard solution)
+* Integrate with some proprietary single-sign-on system
 
-or anything else you dream up. In this example, we'll build an API token authentication
-system so we can learn more about Guard in detail.
+and many more. In this example, we'll build an API token authentication
+system, so we can learn more about Guard in detail.
+
+.. tip::
+
+    A :doc:`new experimental authenticator-based system </security/experimental_authenticators>`
+    was introduced in Symfony 5.1, which will eventually replace Guards in Symfony 6.0.
 
 Step 1) Prepare your User Class
 -------------------------------
@@ -38,7 +40,7 @@ directly to your ``User`` class (the ``make:entity`` command is a good way to do
         // ...
 
     +     /**
-    +      * @ORM\Column(type="string", unique=true)
+    +      * @ORM\Column(type="string", unique=true, nullable=true)
     +      */
     +     private $apiToken;
 
@@ -66,14 +68,14 @@ This requires you to implement several methods::
 
     use App\Entity\User;
     use Doctrine\ORM\EntityManagerInterface;
-    use Symfony\Component\HttpFoundation\Request;
     use Symfony\Component\HttpFoundation\JsonResponse;
+    use Symfony\Component\HttpFoundation\Request;
     use Symfony\Component\HttpFoundation\Response;
-    use Symfony\Component\Security\Core\User\UserInterface;
-    use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
     use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
     use Symfony\Component\Security\Core\Exception\AuthenticationException;
+    use Symfony\Component\Security\Core\User\UserInterface;
     use Symfony\Component\Security\Core\User\UserProviderInterface;
+    use Symfony\Component\Security\Guard\AbstractGuardAuthenticator;
 
     class TokenAuthenticator extends AbstractGuardAuthenticator
     {
@@ -86,7 +88,7 @@ This requires you to implement several methods::
 
         /**
          * Called on every request to decide if this authenticator should be
-         * used for the request. Returning false will cause this authenticator
+         * used for the request. Returning `false` will cause this authenticator
          * to be skipped.
          */
         public function supports(Request $request)
@@ -100,30 +102,29 @@ This requires you to implement several methods::
          */
         public function getCredentials(Request $request)
         {
-            return array(
-                'token' => $request->headers->get('X-AUTH-TOKEN'),
-            );
+            return $request->headers->get('X-AUTH-TOKEN');
         }
 
         public function getUser($credentials, UserProviderInterface $userProvider)
         {
-            $apiToken = $credentials['token'];
-
-            if (null === $apiToken) {
-                return;
+            if (null === $credentials) {
+                // The token header was empty, authentication fails with HTTP Status
+                // Code 401 "Unauthorized"
+                return null;
             }
 
-            // if a User object, checkCredentials() is called
+            // if a User is returned, checkCredentials() is called
             return $this->em->getRepository(User::class)
-                ->findOneBy(['apiToken' => $apiToken]);
+                ->findOneBy(['apiToken' => $credentials])
+            ;
         }
 
         public function checkCredentials($credentials, UserInterface $user)
         {
-            // check credentials - e.g. make sure the password is valid
-            // no credential check is needed in this case
+            // Check credentials - e.g. make sure the password is valid.
+            // In case of an API token, no credential check is needed.
 
-            // return true to cause authentication success
+            // Return `true` to cause authentication success
             return true;
         }
 
@@ -135,14 +136,15 @@ This requires you to implement several methods::
 
         public function onAuthenticationFailure(Request $request, AuthenticationException $exception)
         {
-            $data = array(
+            $data = [
+                // you may want to customize or obfuscate the message first
                 'message' => strtr($exception->getMessageKey(), $exception->getMessageData())
 
                 // or to translate this message
                 // $this->translator->trans($exception->getMessageKey(), $exception->getMessageData())
-            );
+            ];
 
-            return new JsonResponse($data, Response::HTTP_FORBIDDEN);
+            return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
         }
 
         /**
@@ -150,10 +152,10 @@ This requires you to implement several methods::
          */
         public function start(Request $request, AuthenticationException $authException = null)
         {
-            $data = array(
+            $data = [
                 // you might translate this message
                 'message' => 'Authentication Required'
-            );
+            ];
 
             return new JsonResponse($data, Response::HTTP_UNAUTHORIZED);
         }
@@ -187,7 +189,7 @@ Finally, configure your ``firewalls`` key in ``security.yaml`` to use this authe
                 # ...
 
                 main:
-                    anonymous: ~
+                    anonymous: lazy
                     logout: ~
 
                     guard:
@@ -207,15 +209,17 @@ Finally, configure your ``firewalls`` key in ``security.yaml`` to use this authe
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:srv="http://symfony.com/schema/dic/services"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd">
+                https://symfony.com/schema/dic/services/services-1.0.xsd
+                http://symfony.com/schema/dic/security
+                https://symfony.com/schema/dic/security/security-1.0.xsd">
             <config>
                 <!-- ... -->
 
-                <firewall name="main"
-                    pattern="^/"
-                    anonymous="true"
-                >
-                    <logout />
+                <!-- if you want, disable storing the user in the session
+                    add 'stateless="true"' to the firewall -->
+                <firewall name="main" pattern="^/">
+                    <anonymous lazy="true"/>
+                    <logout/>
 
                     <guard>
                         <authenticator>App\Security\TokenAuthenticator</authenticator>
@@ -230,29 +234,31 @@ Finally, configure your ``firewalls`` key in ``security.yaml`` to use this authe
 
         // config/packages/security.php
 
-        // ..
+        // ...
         use App\Security\TokenAuthenticator;
 
-        $container->loadFromExtension('security', array(
-            'firewalls' => array(
-                'main'       => array(
+        $container->loadFromExtension('security', [
+            'firewalls' => [
+                'main'       => [
                     'pattern'        => '^/',
-                    'anonymous'      => true,
+                    'anonymous'      => 'lazy',
                     'logout'         => true,
-                    'guard'          => array(
-                        'authenticators'  => array(
-                            TokenAuthenticator::class
-                        ),
-                    ),
+                    'guard'          => [
+                        'authenticators'  => [
+                            TokenAuthenticator::class,
+                        ],
+                    ],
+                    // if you want, disable storing the user in the session
+                    // 'stateless' => true,
                     // ...
-                ),
-            ),
-        ));
+                ],
+            ],
+        ]);
 
 You did it! You now have a fully-working API token authentication system. If your
 homepage required ``ROLE_USER``, then you could test it under different conditions:
 
-.. code-block:: bash
+.. code-block:: terminal
 
     # test with no token
     curl http://localhost:8000/
@@ -276,14 +282,13 @@ The Guard Authenticator Methods
 Each authenticator needs the following methods:
 
 **supports(Request $request)**
-    This will be called on *every* request and your job is to decide if the
+    This is called on *every* request and your job is to decide if the
     authenticator should be used for this request (return ``true``) or if it
     should be skipped (return ``false``).
 
 **getCredentials(Request $request)**
-    This will be called on *every* request and your job is to read the token (or
-    whatever your "authentication" information is) from the request and return it.
-    These credentials are later passed as the first argument of ``getUser()``.
+    Your job is to read the token (or whatever your "authentication" information is)
+    from the request and return it. These credentials are passed to ``getUser()``.
 
 **getUser($credentials, UserProviderInterface $userProvider)**
     The ``$credentials`` argument is the value returned by ``getCredentials()``.
@@ -296,11 +301,11 @@ Each authenticator needs the following methods:
     If ``getUser()`` returns a User object, this method is called. Your job is to
     verify if the credentials are correct. For a login form, this is where you would
     check that the password is correct for the user. To pass authentication, return
-    ``true``. If you return *anything* else
+    ``true``. If you return ``false``
     (or throw an :ref:`AuthenticationException <guard-customize-error>`),
     authentication will fail.
 
-**onAuthenticationSuccess(Request $request, TokenInterface $token, $providerKey)**
+**onAuthenticationSuccess(Request $request, TokenInterface $token, string $providerKey)**
     This is called after successful authentication and your job is to either
     return a :class:`Symfony\\Component\\HttpFoundation\\Response` object
     that will be sent to the client or ``null`` to continue the request
@@ -321,7 +326,7 @@ Each authenticator needs the following methods:
     the user authenticate (e.g. a 401 response that says "token is missing!").
 
 **supportsRememberMe()**
-    If you want to support "remember me" functionality, return true from this method.
+    If you want to support "remember me" functionality, return ``true`` from this method.
     You will still need to activate ``remember_me`` under your firewall for it to work.
     Since this is a stateless API, you do not want to support "remember me"
     functionality in this example.
@@ -330,7 +335,8 @@ Each authenticator needs the following methods:
     If you are implementing the :class:`Symfony\\Component\\Security\\Guard\\AuthenticatorInterface`
     instead of extending the :class:`Symfony\\Component\\Security\\Guard\\AbstractGuardAuthenticator`
     class, you have to implement this method. It will be called
-    after a successful authentication to create and return the token
+    after a successful authentication to create and return the token (a
+    class implementing :class:`Symfony\\Component\\Security\\Guard\\Token\\GuardTokenInterface`)
     for the user, who was supplied as the first argument.
 
 The picture below shows how Symfony calls Guard Authenticator methods:
@@ -382,7 +388,7 @@ to cause a failure::
 In this case, since "ILuvAPIs" is a ridiculous API key, you could include an easter
 egg to return a custom message if someone tries this:
 
-.. code-block:: bash
+.. code-block:: terminal
 
     curl -H "X-AUTH-TOKEN: ILuvAPIs" http://localhost:8000/
     # {"message":"ILuvAPIs is not a real API key: it's just a silly phrase"}
@@ -509,6 +515,5 @@ Frequently Asked Questions
     question) or use the ``User`` object from FOSUserBundle and create your own
     authenticator(s) (just like in this article).
 
-.. _`must be quoted with backticks`: http://docs.doctrine-project.org/projects/doctrine-orm/en/latest/reference/basic-mapping.html#quoting-reserved-words
 .. _`Social Authentication`: https://github.com/knpuniversity/oauth2-client-bundle#authenticating-with-guard
 .. _`HWIOAuthBundle`: https://github.com/hwi/HWIOAuthBundle

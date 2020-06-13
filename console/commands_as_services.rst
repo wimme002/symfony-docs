@@ -24,6 +24,7 @@ For example, suppose you want to log something from within your command::
 
     class SunshineCommand extends Command
     {
+        protected static $defaultName = 'app:sunshine';
         private $logger;
 
         public function __construct(LoggerInterface $logger)
@@ -37,7 +38,6 @@ For example, suppose you want to log something from within your command::
         protected function configure()
         {
             $this
-                ->setName('app:sunshine')
                 ->setDescription('Good morning!');
         }
 
@@ -45,6 +45,8 @@ For example, suppose you want to log something from within your command::
         {
             $this->logger->info('Waking up the sun');
             // ...
+            
+            return 0;
         }
     }
 
@@ -59,13 +61,6 @@ works! You can call the ``app:sunshine`` command and start logging.
     not :ref:`lazy <console-command-service-lazy-loading>`, try to avoid doing any
     work (e.g. making database queries), as that code will be run, even if you're using
     the console to execute a different command.
-
-.. note::
-
-    In previous Symfony versions, you could make the command class extend from
-    :class:`Symfony\\Bundle\\FrameworkBundle\\Command\\ContainerAwareCommand` to
-    get services via ``$this->getContainer()->get('SERVICE_ID')``. This is
-    deprecated in Symfony 4.2 and it won't work in future Symfony versions.
 
 .. _console-command-service-lazy-loading:
 
@@ -89,10 +84,11 @@ Or set the ``command`` attribute on the ``console.command`` tag in your service 
 
         # config/services.yaml
         services:
+            # ...
+
             App\Command\SunshineCommand:
                 tags:
                     - { name: 'console.command', command: 'app:sunshine' }
-                # ...
 
     .. code-block:: xml
 
@@ -100,11 +96,14 @@ Or set the ``command`` attribute on the ``console.command`` tag in your service 
         <?xml version="1.0" encoding="UTF-8" ?>
         <container xmlns="http://symfony.com/schema/dic/services"
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+            xsi:schemaLocation="http://symfony.com/schema/dic/services
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
 
             <services>
+                <!-- ... -->
+
                 <service id="App\Command\SunshineCommand">
-                     <tag name="console.command" command="app:sunshine" />
+                    <tag name="console.command" command="app:sunshine"/>
                 </service>
             </services>
         </container>
@@ -113,11 +112,10 @@ Or set the ``command`` attribute on the ``console.command`` tag in your service 
 
         // config/services.php
         use App\Command\SunshineCommand;
-        //...
 
-        $container
-            ->register(SunshineCommand::class)
-            ->addTag('console.command', array('command' => 'app:sunshine'))
+        // ...
+        $container->register(SunshineCommand::class)
+            ->addTag('console.command', ['command' => 'app:sunshine'])
         ;
 
 .. note::

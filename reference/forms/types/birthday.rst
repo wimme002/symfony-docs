@@ -5,7 +5,7 @@ BirthdayType Field
 ==================
 
 A :doc:`DateType </reference/forms/types/date>` field that specializes in handling
-birthdate data.
+birth date data.
 
 Can be rendered as a single text box, three text boxes (month, day and year),
 or three select boxes.
@@ -29,6 +29,7 @@ option defaults to 120 years ago to the current year.
 |                      | - `placeholder`_                                                              |
 |                      | - `format`_                                                                   |
 |                      | - `input`_                                                                    |
+|                      | - `input_format`_                                                             |
 |                      | - `model_timezone`_                                                           |
 |                      | - `months`_                                                                   |
 |                      | - `view_timezone`_                                                            |
@@ -36,25 +37,30 @@ option defaults to 120 years ago to the current year.
 |                      |                                                                               |
 |                      | from the :doc:`FormType </reference/forms/types/form>`:                       |
 |                      |                                                                               |
+|                      | - `attr`_                                                                     |
 |                      | - `data`_                                                                     |
 |                      | - `disabled`_                                                                 |
 |                      | - `help`_                                                                     |
 |                      | - `help_attr`_                                                                |
+|                      | - `help_html`_                                                                |
 |                      | - `inherit_data`_                                                             |
 |                      | - `invalid_message`_                                                          |
 |                      | - `invalid_message_parameters`_                                               |
 |                      | - `mapped`_                                                                   |
+|                      | - `row_attr`_                                                                 |
 +----------------------+-------------------------------------------------------------------------------+
 | Parent type          | :doc:`DateType </reference/forms/types/date>`                                 |
 +----------------------+-------------------------------------------------------------------------------+
 | Class                | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\BirthdayType`        |
 +----------------------+-------------------------------------------------------------------------------+
 
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
+
 Overridden Options
 ------------------
 
-years
-~~~~~
+``years``
+~~~~~~~~~
 
 **type**: ``array`` **default**: 120 years ago to the current year
 
@@ -70,8 +76,8 @@ These options inherit from the :doc:`DateType </reference/forms/types/date>`:
 
 .. include:: /reference/forms/types/options/days.rst.inc
 
-placeholder
-~~~~~~~~~~~
+``placeholder``
+~~~~~~~~~~~~~~~
 
 **type**: ``string`` | ``array``
 
@@ -79,22 +85,24 @@ If your widget option is set to ``choice``, then this field will be represented
 as a series of ``select`` boxes. When the placeholder value is a string,
 it will be used as the **blank value** of all select boxes::
 
-    $builder->add('birthdate', BirthdayType::class, array(
+    $builder->add('birthdate', BirthdayType::class, [
         'placeholder' => 'Select a value',
-    ));
+    ]);
 
 Alternatively, you can use an array that configures different placeholder
 values for the year, month and day fields::
 
-    $builder->add('birthdate', BirthdayType::class, array(
-        'placeholder' => array(
+    $builder->add('birthdate', BirthdayType::class, [
+        'placeholder' => [
             'year' => 'Year', 'month' => 'Month', 'day' => 'Day',
-        )
-    ));
+        ]
+    ]);
 
 .. include:: /reference/forms/types/options/date_format.rst.inc
 
 .. include:: /reference/forms/types/options/date_input.rst.inc
+
+.. include:: /reference/forms/types/options/date_input_format.rst.inc
 
 .. include:: /reference/forms/types/options/model_timezone.rst.inc
 
@@ -106,6 +114,8 @@ values for the year, month and day fields::
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
+.. include:: /reference/forms/types/options/attr.rst.inc
+
 .. include:: /reference/forms/types/options/data.rst.inc
 
 .. include:: /reference/forms/types/options/disabled.rst.inc
@@ -114,6 +124,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
 
+.. include:: /reference/forms/types/options/help_html.rst.inc
+
 .. include:: /reference/forms/types/options/inherit_data.rst.inc
 
 .. include:: /reference/forms/types/options/invalid_message.rst.inc
@@ -121,3 +133,5 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 .. include:: /reference/forms/types/options/invalid_message_parameters.rst.inc
 
 .. include:: /reference/forms/types/options/mapped.rst.inc
+
+.. include:: /reference/forms/types/options/row_attr.rst.inc

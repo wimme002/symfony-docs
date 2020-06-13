@@ -19,8 +19,7 @@ entity manager that connects to another database might handle the rest.
 .. caution::
 
     Entities cannot define associations across different entity managers. If you
-    need that, there are `several alternatives <https://stackoverflow.com/a/11494543/2804294>`_
-    that require some custom setup.
+    need that, there are `several alternatives`_ that require some custom setup.
 
 The following configuration code shows how you can configure two entity managers:
 
@@ -35,13 +34,13 @@ The following configuration code shows how you can configure two entity managers
                 connections:
                     default:
                         # configure these for your database server
-                        url: '%env(DATABASE_URL)%'
+                        url: '%env(resolve:DATABASE_URL)%'
                         driver: 'pdo_mysql'
                         server_version: '5.7'
                         charset: utf8mb4
                     customer:
                         # configure these for your database server
-                        url: '%env(DATABASE_CUSTOMER_URL)%'
+                        url: '%env(resolve:DATABASE_CUSTOMER_URL)%'
                         driver: 'pdo_mysql'
                         server_version: '5.7'
                         charset: utf8mb4
@@ -76,15 +75,15 @@ The following configuration code shows how you can configure two entity managers
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:doctrine="http://symfony.com/schema/dic/doctrine"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/doctrine
-                http://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
+                https://symfony.com/schema/dic/doctrine/doctrine-1.0.xsd">
 
             <doctrine:config>
                 <doctrine:dbal default-connection="default">
                     <!-- configure these for your database server -->
                     <doctrine:connection name="default"
-                        url="%env(DATABASE_URL)%"
+                        url="%env(resolve:DATABASE_URL)%"
                         driver="pdo_mysql"
                         server_version="5.7"
                         charset="utf8mb4"
@@ -92,7 +91,7 @@ The following configuration code shows how you can configure two entity managers
 
                     <!-- configure these for your database server -->
                     <doctrine:connection name="customer"
-                        url="%env(DATABASE_CUSTOMER_URL)%"
+                        url="%env(resolve:DATABASE_CUSTOMER_URL)%"
                         driver="pdo_mysql"
                         server_version="5.7"
                         charset="utf8mb4"
@@ -128,57 +127,57 @@ The following configuration code shows how you can configure two entity managers
     .. code-block:: php
 
         // config/packages/doctrine.php
-        $container->loadFromExtension('doctrine', array(
-            'dbal' => array(
+        $container->loadFromExtension('doctrine', [
+            'dbal' => [
                 'default_connection' => 'default',
-                'connections' => array(
+                'connections' => [
                     // configure these for your database server
-                    'default' => array(
-                        'url'            => '%env(DATABASE_URL)%',
+                    'default' => [
+                        'url'            => '%env(resolve:DATABASE_URL)%',
                         'driver'         => 'pdo_mysql',
                         'server_version' => '5.7',
                         'charset'        => 'utf8mb4',
-                    ),
+                    ],
                     // configure these for your database server
-                    'customer' => array(
-                        'url'            => '%env(DATABASE_CUSTOMER_URL)%',
+                    'customer' => [
+                        'url'            => '%env(resolve:DATABASE_CUSTOMER_URL)%',
                         'driver'         => 'pdo_mysql',
                         'server_version' => '5.7',
                         'charset'        => 'utf8mb4',
-                    ),
-                ),
-            ),
+                    ],
+                ],
+            ],
 
-            'orm' => array(
+            'orm' => [
                 'default_entity_manager' => 'default',
-                'entity_managers' => array(
-                    'default' => array(
+                'entity_managers' => [
+                    'default' => [
                         'connection' => 'default',
-                        'mappings'   => array(
-                            'Main'  => array(
-                                is_bundle => false,
-                                type => 'annotation',
-                                dir => '%kernel.project_dir%/src/Entity/Main',
-                                prefix => 'App\Entity\Main',
-                                alias => 'Main',
-                            )
-                        ),
-                    ),
-                    'customer' => array(
+                        'mappings'   => [
+                            'Main'  => [
+                                'is_bundle' => false,
+                                'type' => 'annotation',
+                                'dir' => '%kernel.project_dir%/src/Entity/Main',
+                                'prefix' => 'App\Entity\Main',
+                                'alias' => 'Main',
+                            ]
+                        ],
+                    ],
+                    'customer' => [
                         'connection' => 'customer',
-                        'mappings'   => array(
-                            'Customer'  => array(
-                                is_bundle => false,
-                                type => 'annotation',
-                                dir => '%kernel.project_dir%/src/Entity/Customer',
-                                prefix => 'App\Entity\Customer',
-                                alias => 'Customer',
-                            )
-                        ),
-                    ),
-                ),
-            ),
-        ));
+                        'mappings'   => [
+                            'Customer'  => [
+                                'is_bundle' => false,
+                                'type' => 'annotation',
+                                'dir' => '%kernel.project_dir%/src/Entity/Customer',
+                                'prefix' => 'App\Entity\Customer',
+                                'alias' => 'Customer',
+                            ]
+                        ],
+                    ],
+                ],
+            ],
+        ]);
 
 In this case, you've defined two entity managers and called them ``default``
 and ``customer``. The ``default`` entity manager manages entities in the
@@ -283,3 +282,5 @@ The same applies to repository calls::
             ;
         }
     }
+
+.. _`several alternatives`: https://stackoverflow.com/a/11494543

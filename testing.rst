@@ -22,10 +22,9 @@ wraps the original PHPUnit binary to provide additional features:
 
     $ composer require --dev symfony/phpunit-bridge
 
-Each test - whether it's a unit test or a functional test - is a PHP class
-that should live in the ``tests/`` directory of your application. If you follow
-this rule, then you can run all of your application's tests with the following
-command:
+After the library downloads, try executing PHPUnit by running (the first time
+you run this, it will download PHPUnit itself and make its classes available in
+your app):
 
 .. code-block:: terminal
 
@@ -33,11 +32,16 @@ command:
 
 .. note::
 
-    The ``./bin/phpunit`` command is created by :doc:`Symfony Flex </setup/flex>`
+    The ``./bin/phpunit`` command is created by :ref:`Symfony Flex <symfony-flex>`
     when installing the ``phpunit-bridge`` package. If the command is missing, you
     can remove the package (``composer remove symfony/phpunit-bridge``) and install
     it again. Another solution is to remove the project's ``symfony.lock`` file and
     run ``composer install`` to force the execution of all Symfony Flex recipes.
+
+Each test - whether it's a unit test or a functional test - is a PHP class
+that should live in the ``tests/`` directory of your application. If you follow
+this rule, then you can run all of your application's tests with the same
+command as before.
 
 PHPUnit is configured by the ``phpunit.xml.dist`` file in the root of your
 Symfony application.
@@ -59,7 +63,7 @@ want to test the overall behavior of your application, see the section about
 
 Writing Symfony unit tests is no different from writing standard PHPUnit
 unit tests. Suppose, for example, that you have an *incredibly* simple class
-called ``Calculator`` in the ``Util/`` directory of the app bundle::
+called ``Calculator`` in the ``src/Util/`` directory of the app::
 
     // src/Util/Calculator.php
     namespace App\Util;
@@ -109,13 +113,13 @@ You can also limit a test run to a directory or a specific test file:
 .. code-block:: terminal
 
     # run all tests of the application
-    $ ./bin/phpunit
+    $ php bin/phpunit
 
     # run all tests in the Util/ directory
-    $ ./bin/phpunit tests/Util
+    $ php bin/phpunit tests/Util
 
     # run tests for the Calculator class
-    $ ./bin/phpunit tests/Util/CalculatorTest.php
+    $ php bin/phpunit tests/Util/CalculatorTest.php
 
 .. index::
    single: Tests; Functional tests
@@ -204,12 +208,17 @@ component, run:
     $ composer require --dev symfony/css-selector
 
 Now you can use CSS selectors with the crawler. To assert that the phrase
-"Hello World" is on the page at least once, you can use this assertion::
+"Hello World" is present in the page's main title, you can use this assertion::
 
-    $this->assertGreaterThan(
-        0,
-        $crawler->filter('html:contains("Hello World")')->count()
-    );
+    $this->assertSelectorTextContains('html h1.title', 'Hello World');
+
+This assertion checks if the first element matching the CSS selector contains
+the given text. This asserts calls ``$crawler->filter('html h1.title')``
+internally, which allows you to use CSS selectors to filter any HTML element in
+the page and check for its existence, attributes, text, etc.
+
+The ``assertSelectorTextContains`` method is not a native PHPUnit assertion and is
+available thanks to the ``WebTestCase`` class.
 
 The crawler can also be used to interact with the page. Click on a link by first
 selecting it with the crawler using either an XPath expression or a CSS selector,
@@ -242,7 +251,7 @@ some form values and submit the corresponding form::
     of form fields (e.g. ``select()`` and ``tick()``). For details, see the
     `Forms`_ section below.
 
-Now that you can easily navigate through an application, use assertions to test
+Now that you can navigate through an application, use assertions to test
 that it actually does what you expect it to. Use the Crawler to make assertions
 on the DOM::
 
@@ -253,7 +262,7 @@ Or test against the response content directly if you just want to assert that
 the content contains some text or in case that the response is not an XML/HTML
 document::
 
-    $this->assertContains(
+    $this->assertStringContainsString(
         'Hello World',
         $client->getResponse()->getContent()
     );
@@ -261,7 +270,7 @@ document::
 .. tip::
 
     Instead of installing each testing dependency individually, you can use the
-    Symfony Test pack to install all those dependencies at once:
+    ``test`` :ref:`Symfony pack <symfony-packs>` to install all those dependencies at once:
 
     .. code-block:: terminal
 
@@ -299,7 +308,7 @@ document::
         );
 
         // asserts that the response content contains a string
-        $this->assertContains('foo', $client->getResponse()->getContent());
+        $this->assertStringContainsString('foo', $client->getResponse()->getContent());
         // ...or matches a regex
         $this->assertRegExp('/foo(bar)?/', $client->getResponse()->getContent());
 
@@ -349,12 +358,12 @@ to associate both methods::
 
     public function provideUrls()
     {
-        return array(
-            array('/'),
-            array('/blog'),
-            array('/contact'),
+        return [
+            ['/'],
+            ['/blog'],
+            ['/contact'],
             // ...
-        );
+        ];
     }
 
 .. index::
@@ -386,9 +395,9 @@ returns a ``Crawler`` instance.
         request(
             $method,
             $uri,
-            array $parameters = array(),
-            array $files = array(),
-            array $server = array(),
+            array $parameters = [],
+            array $files = [],
+            array $server = [],
             $content = null,
             $changeHistory = true
         )
@@ -401,12 +410,12 @@ returns a ``Crawler`` instance.
         $client->request(
             'GET',
             '/post/hello-world',
-            array(),
-            array(),
-            array(
+            [],
+            [],
+            [
                 'CONTENT_TYPE' => 'application/json',
                 'HTTP_REFERER' => '/foo/bar',
-            )
+            ]
         );
 
 Use the crawler to find DOM elements in the response. These elements can then
@@ -414,7 +423,7 @@ be used to click on links and submit forms::
 
     $crawler = $client->clickLink('Go elsewhere...');
 
-    $crawler = $client->submitForm('validate', array('name' => 'Fabien'));
+    $crawler = $client->submitForm('validate', ['name' => 'Fabien']);
 
 The ``clickLink()`` and ``submitForm()`` methods both return a ``Crawler`` object.
 These methods are the best way to browse your application as it takes care
@@ -425,15 +434,15 @@ The ``request()`` method can also be used to simulate form submissions directly
 or perform more complex requests. Some useful examples::
 
     // submits a form directly (but using the Crawler is easier!)
-    $client->request('POST', '/submit', array('name' => 'Fabien'));
+    $client->request('POST', '/submit', ['name' => 'Fabien']);
 
     // submits a raw JSON string in the request body
     $client->request(
         'POST',
         '/submit',
-        array(),
-        array(),
-        array('CONTENT_TYPE' => 'application/json'),
+        [],
+        [],
+        ['CONTENT_TYPE' => 'application/json'],
         '{"name":"Fabien"}'
     );
 
@@ -449,21 +458,21 @@ or perform more complex requests. Some useful examples::
     $client->request(
         'POST',
         '/submit',
-        array('name' => 'Fabien'),
-        array('photo' => $photo)
+        ['name' => 'Fabien'],
+        ['photo' => $photo]
     );
 
     // Perform a DELETE request and pass HTTP headers
     $client->request(
         'DELETE',
         '/post/12',
-        array(),
-        array(),
-        array('PHP_AUTH_USER' => 'username', 'PHP_AUTH_PW' => 'pa$$word')
+        [],
+        [],
+        ['PHP_AUTH_USER' => 'username', 'PHP_AUTH_PW' => 'pa$$word']
     );
 
 Last but not least, you can force each request to be executed in its own PHP
-process to avoid any side-effects when working with several clients in the same
+process to avoid any side effects when working with several clients in the same
 script::
 
     $client->insulate();
@@ -471,12 +480,12 @@ script::
 AJAX Requests
 ~~~~~~~~~~~~~
 
-The Client provides a :method:`Symfony\\Component\\BrowserKit\\Client::xmlHttpRequest`
+The Client provides a :method:`Symfony\\Component\\BrowserKit\\AbstractBrowser::xmlHttpRequest`
 method, which has the same arguments as the ``request()`` method, and it's a
 shortcut to make AJAX requests::
 
     // the required HTTP_X_REQUESTED_WITH header is added automatically
-    $client->xmlHttpRequest('POST', '/submit', array('name' => 'Fabien'));
+    $client->xmlHttpRequest('POST', '/submit', ['name' => 'Fabien']);
 
 Browsing
 ~~~~~~~~
@@ -518,6 +527,7 @@ You can also get the objects related to the latest request::
     // the BrowserKit response instance
     $response = $client->getInternalResponse();
 
+    // the Crawler instance
     $crawler = $client->getCrawler();
 
 Accessing the Container
@@ -531,10 +541,60 @@ allows fetching both public and all non-removed private services::
 
     // gives access to the same services used in your test, unless you're using
     // $client->insulate() or using real HTTP requests to test your application
+    // don't forget to call self::bootKernel() before, otherwise, the container
+    // will be empty
     $container = self::$container;
 
 For a list of services available in your application, use the ``debug:container``
 command.
+
+If a private service is *never* used in your application (outside of your test),
+it is *removed* from the container and cannot be accessed as described above. In
+that case, you can create a public alias in the ``test`` environment and access
+it via that alias:
+
+.. configuration-block::
+
+    .. code-block:: yaml
+
+        # config/services_test.yaml
+        services:
+            # access the service in your test via
+            # self::$container->get('test.App\Test\SomeTestHelper')
+            test.App\Test\SomeTestHelper:
+                # the id of the private service
+                alias: 'App\Test\SomeTestHelper'
+                public: true
+
+    .. code-block:: xml
+
+        <!-- config/services_test.xml -->
+        <?xml version="1.0" encoding="UTF-8" ?>
+        <container xmlns="http://symfony.com/schema/dic/services"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            xsi:schemaLocation="http://symfony.com/schema/dic/services
+                https://symfony.com/schema/dic/services/services-1.0.xsd">
+
+            <services>
+                <!-- ... -->
+
+                <service id="test.App\Test\SomeTestHelper" alias="App\Test\SomeTestHelper" public="true"/>
+            </services>
+        </container>
+
+    .. code-block:: php
+
+        // config/services_test.php
+        namespace Symfony\Component\DependencyInjection\Loader\Configurator;
+
+        use App\Service\MessageGenerator;
+        use App\Updates\SiteUpdateManager;
+
+        return function(ContainerConfigurator $configurator) {
+            // ...
+
+            $services->alias('test.App\Test\SomeTestHelper', 'App\Test\SomeTestHelper')->public();
+        };
 
 .. tip::
 
@@ -546,6 +606,64 @@ command.
 
     If the information you need to check is available from the profiler, use
     it instead.
+
+.. _testing_logging_in_users:
+
+Logging in Users (Authentication)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+.. versionadded:: 5.1
+
+    The ``loginUser()`` method was introduced in Symfony 5.1.
+
+When you want to add functional tests for protected pages, you have to
+first "login" as a user. Reproducing the actual steps - such as
+submitting a login form - make a test very slow. For this reason, Symfony
+provides a ``loginUser()`` method to simulate logging in in your functional
+tests.
+
+Instead of login in with real users, it's recommended to create a user only for
+tests. You can do that with Doctrine :ref:`data fixtures <user-data-fixture>`,
+to load the testing users only in the test database.
+
+After loading users in your database, use your user repository to fetch
+this user and use
+:method:`$client->loginUser() <Symfony\\Bundle\\FrameworkBundle\\KernelBrowser::loginUser>`
+to simulate a login request::
+
+    // tests/Controller/ProfileControllerTest.php
+    namespace App\Tests\Controller;
+
+    use App\Repository\UserRepository;
+    use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+
+    class ProfileControllerTest extends WebTestCase
+    {
+        // ...
+
+        public function testVisitingWhileLoggedIn()
+        {
+            $client = static::createClient();
+            $userRepository = static::$container->get(UserRepository::class);
+
+            // retrieve the test user
+            $testUser = $userRepository->findOneByEmail('john.doe@example.com');
+
+            // simulate $testUser being logged in
+            $client->loginUser($testUser);
+
+            // test e.g. the profile page
+            $client->request('GET', '/profile');
+            $this->assertResponseIsSuccessful();
+            $this->assertSelectorTextContains('h1', 'Hello John!');
+        }
+    }
+
+You can pass any
+:class:`Symfony\\Component\\Security\\Core\\User\\UserInterface` instance to
+``loginUser()``. This method creates a special
+:class:`Symfony\\Bundle\\FrameworkBundle\\Test\\TestBrowserToken` object and
+stores in the session of the test client.
 
 Accessing the Profiler Data
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -589,10 +707,6 @@ will no longer be followed::
 
 Reporting Exceptions
 ~~~~~~~~~~~~~~~~~~~~
-
-.. versionadded:: 3.4
-
-    The ``catchExceptions()`` method was introduced in Symfony 3.4.
 
 Debugging exceptions in functional tests may be difficult because by default
 they are caught and you need to look at the logs to see which exception was
@@ -656,7 +770,7 @@ narrow down your node selection by chaining the method calls::
     $crawler
         ->filter('h1')
         ->reduce(function ($node, $i) {
-            if (!$node->getAttribute('class')) {
+            if (!$node->attr('class')) {
                 return false;
             }
         })
@@ -679,11 +793,18 @@ The Crawler can extract information from the nodes::
     // returns the node value for the first node
     $crawler->text();
 
+    // returns the default text if the node does not exist
+    $crawler->text('Default text content');
+
+    // pass TRUE as the second argument of text() to remove all extra white spaces, including
+    // the internal ones (e.g. "  foo\n  bar    baz \n " is returned as "foo bar baz")
+    $crawler->text(null, true);
+
     // extracts an array of attributes for all nodes
     // (_text returns the node value)
     // returns an array for each element in crawler,
     // each with the value and href
-    $info = $crawler->extract(array('_text', 'href'));
+    $info = $crawler->extract(['_text', 'href']);
 
     // executes a lambda for each node and return an array of results
     $data = $crawler->each(function ($node, $i) {
@@ -703,7 +824,7 @@ given text (or the first clickable image with that ``alt`` attribute)::
 
 If you need access to the :class:`Symfony\\Component\\DomCrawler\\Link` object
 that provides helpful methods specific to links (such as ``getMethod()`` and
-``getUri()``), use the ``selectLink()`` method instead:
+``getUri()``), use the ``selectLink()`` method instead::
 
     $client = static::createClient();
     $crawler = $client->request('GET', '/post/hello-world');
@@ -719,9 +840,9 @@ Use the ``submitForm()`` method to submit the form that contains the given butto
     $client = static::createClient();
     $client->request('GET', '/post/hello-world');
 
-    $crawler = $client->submitForm('Add comment', array(
-       'comment_form[content]' => '...',
-    ));
+    $crawler = $client->submitForm('Add comment', [
+        'comment_form[content]' => '...',
+    ]);
 
 The first argument of ``submitForm()`` is the text content, ``id``, ``value`` or
 ``name`` of any ``<button>`` or ``<input type="submit">`` included in the form.
@@ -746,13 +867,13 @@ that provides helpful methods specific to forms (such as ``getUri()``,
     $form = $buttonCrawlerNode->form();
 
     // you can also pass an array of field values that overrides the default ones
-    $form = $buttonCrawlerNode->form(array(
+    $form = $buttonCrawlerNode->form([
         'my_form[name]'    => 'Fabien',
         'my_form[subject]' => 'Symfony rocks!',
-    ));
+    ]);
 
     // you can pass a second argument to override the form HTTP method
-    $form = $buttonCrawlerNode->form(array(), 'DELETE');
+    $form = $buttonCrawlerNode->form([], 'DELETE');
 
     // submit the Form object
     $client->submit($form);
@@ -760,10 +881,10 @@ that provides helpful methods specific to forms (such as ``getUri()``,
 The field values can also be passed as a second argument of the ``submit()``
 method::
 
-    $client->submit($form, array(
+    $client->submit($form, [
         'my_form[name]'    => 'Fabien',
         'my_form[subject]' => 'Symfony rocks!',
-    ));
+    ]);
 
 For more complex situations, use the ``Form`` instance as an array to set the
 value of each field individually::
@@ -790,6 +911,13 @@ their type::
 
 .. tip::
 
+    Instead of hardcoding the form name as part of the field names (e.g.
+    ``my_form[...]`` in previous examples), you can use the
+    :method:`Symfony\\Component\\DomCrawler\\Form::getName` method to get the
+    form name.
+
+.. tip::
+
     If you purposefully want to select "invalid" select/radio values, see
     :ref:`components-dom-crawler-invalid`.
 
@@ -807,8 +935,8 @@ their type::
     The ``submit()`` and ``submitForm()`` methods define optional arguments to
     add custom server parameters and HTTP headers when submitting the form::
 
-        $client->submit($form, array(), array('HTTP_ACCEPT_LANGUAGE' => 'es'));
-        $client->submitForm($button, array(), 'POST', array('HTTP_ACCEPT_LANGUAGE' => 'es'));
+        $client->submit($form, [], ['HTTP_ACCEPT_LANGUAGE' => 'es']);
+        $client->submitForm($button, [], 'POST', ['HTTP_ACCEPT_LANGUAGE' => 'es']);
 
 Adding and Removing Forms to a Collection
 .........................................
@@ -888,12 +1016,12 @@ configuration option:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:swiftmailer="http://symfony.com/schema/dic/swiftmailer"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/swiftmailer
-                http://symfony.com/schema/dic/swiftmailer/swiftmailer-1.0.xsd">
+                https://symfony.com/schema/dic/swiftmailer/swiftmailer-1.0.xsd">
 
             <!-- ... -->
-            <swiftmailer:config disable-delivery="true" />
+            <swiftmailer:config disable-delivery="true"/>
         </container>
 
     .. code-block:: php
@@ -901,18 +1029,18 @@ configuration option:
         // config/packages/test/swiftmailer.php
 
         // ...
-        $container->loadFromExtension('swiftmailer', array(
+        $container->loadFromExtension('swiftmailer', [
             'disable_delivery' => true,
-        ));
+        ]);
 
 You can also use a different environment entirely, or override the default
 debug mode (``true``) by passing each as options to the ``createClient()``
 method::
 
-    $client = static::createClient(array(
+    $client = static::createClient([
         'environment' => 'my_test_env',
         'debug'       => false,
-    ));
+    ]);
 
 Customizing Database URL / Environment Variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -944,17 +1072,17 @@ Sending Custom Headers
 If your application behaves according to some HTTP headers, pass them as the
 second argument of ``createClient()``::
 
-    $client = static::createClient(array(), array(
+    $client = static::createClient([], [
         'HTTP_HOST'       => 'en.example.com',
         'HTTP_USER_AGENT' => 'MySuperBrowser/1.0',
-    ));
+    ]);
 
 You can also override HTTP headers on a per request basis::
 
-    $client->request('GET', '/', array(), array(), array(
+    $client->request('GET', '/', [], [], [
         'HTTP_HOST'       => 'en.example.com',
         'HTTP_USER_AGENT' => 'MySuperBrowser/1.0',
-    ));
+    ]);
 
 .. tip::
 
@@ -1041,14 +1169,11 @@ Learn more
     :glob:
 
     testing/*
-
-* :ref:`Testing a console command <console-testing-commands>`
-* :doc:`The chapter about tests in the Symfony Framework Best Practices </best_practices/tests>`
-* :doc:`/components/dom_crawler`
-* :doc:`/components/css_selector`
+    /components/dom_crawler
+    /components/css_selector
 
 .. _`PHPUnit`: https://phpunit.de/
 .. _`documentation`: https://phpunit.readthedocs.io/
 .. _`PHPUnit Bridge component`: https://symfony.com/components/PHPUnit%20Bridge
-.. _`$_SERVER`: https://php.net/manual/en/reserved.variables.server.php
+.. _`$_SERVER`: https://www.php.net/manual/en/reserved.variables.server.php
 .. _`data providers`: https://phpunit.de/manual/current/en/writing-tests-for-phpunit.html#writing-tests-for-phpunit.data-providers

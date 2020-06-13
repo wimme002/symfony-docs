@@ -17,7 +17,7 @@ an array of the submitted data. The ``getData()`` method allows you to do exactl
 
     public function contact(Request $request)
     {
-        $defaultData = array('message' => 'Type your message here');
+        $defaultData = ['message' => 'Type your message here'];
         $form = $this->createFormBuilder($defaultData)
             ->add('name', TextType::class)
             ->add('email', EmailType::class)
@@ -75,27 +75,27 @@ But if the form is not mapped to an object and you instead want to retrieve a
 simple array of your submitted data, how can you add constraints to the data of
 your form?
 
-The answer is to setup the constraints yourself, and attach them to the individual
+The answer is to set up the constraints yourself, and attach them to the individual
 fields. The overall approach is covered a bit more in :doc:`this validation article </validation/raw_values>`,
 but here's a short example::
 
-    use Symfony\Component\Validator\Constraints\Length;
-    use Symfony\Component\Validator\Constraints\NotBlank;
     use Symfony\Component\Form\Extension\Core\Type\TextType;
     use Symfony\Component\Form\FormBuilderInterface;
+    use Symfony\Component\Validator\Constraints\Length;
+    use Symfony\Component\Validator\Constraints\NotBlank;
 
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-           ->add('firstName', TextType::class, array(
-               'constraints' => new Length(array('min' => 3)),
-           ))
-           ->add('lastName', TextType::class, array(
-               'constraints' => array(
-                   new NotBlank(),
-                   new Length(array('min' => 3)),
-               ),
-           ))
+            ->add('firstName', TextType::class, [
+                'constraints' => new Length(['min' => 3]),
+            ])
+            ->add('lastName', TextType::class, [
+                'constraints' => [
+                    new NotBlank(),
+                    new Length(['min' => 3]),
+                ],
+            ])
         ;
     }
 
@@ -103,14 +103,18 @@ but here's a short example::
 
     If you are using validation groups, you need to either reference the
     ``Default`` group when creating the form, or set the correct group on
-    the constraint you are adding.
+    the constraint you are adding::
 
-    .. code-block:: php
-
-        new NotBlank(array('groups' => array('create', 'update')));
+        new NotBlank(['groups' => ['create', 'update']]);
 
 .. tip::
 
     If the form is not mapped to an object, every object in your array of
     submitted data is validated using the ``Symfony\Component\Validator\Constraints\Valid``
     constraint, unless you :doc:`disable validation </form/disabling_validation>`.
+
+.. caution::
+
+    When a form is only partially submitted (for example, in an HTTP PATCH
+    request), only the constraints from the submitted form fields will be
+    evaluated.

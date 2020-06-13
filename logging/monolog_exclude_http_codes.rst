@@ -30,9 +30,9 @@ logging these HTTP codes based on the MonologBundle configuration:
             xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
             xmlns:monolog="http://symfony.com/schema/dic/monolog"
             xsi:schemaLocation="http://symfony.com/schema/dic/services
-                http://symfony.com/schema/dic/services/services-1.0.xsd
+                https://symfony.com/schema/dic/services/services-1.0.xsd
                 http://symfony.com/schema/dic/monolog
-                http://symfony.com/schema/dic/monolog/monolog-1.0.xsd">
+                https://symfony.com/schema/dic/monolog/monolog-1.0.xsd">
 
             <monolog:config>
                 <monolog:handler type="fingers_crossed" name="main" handler="...">
@@ -41,7 +41,7 @@ logging these HTTP codes based on the MonologBundle configuration:
                         <monolog:url>^/foo</monolog:url>
                         <monolog:url>^/bar</monolog:url>
                     </monolog:excluded-http-code>
-                    <monolog:excluded-http-code code="404" />
+                    <monolog:excluded-http-code code="404"/>
                 </monolog:handler>
             </monolog:config>
         </container>
@@ -49,13 +49,21 @@ logging these HTTP codes based on the MonologBundle configuration:
     .. code-block:: php
 
         // config/packages/prod/monolog.php
-        $container->loadFromExtension('monolog', array(
-            'handlers' => array(
-                'main' => array(
+        $container->loadFromExtension('monolog', [
+            'handlers' => [
+                'main' => [
                     // ...
                     'type'                => 'fingers_crossed',
                     'handler'             => ...,
-                    'excluded_http_codes' => array(403, 404),
-                ),
-            ),
-        ));
+                    'excluded_http_codes' => [403, 404],
+                ],
+            ],
+        ]);
+
+.. caution::
+
+    Combining ``excluded_http_codes`` with a ``passthru_level`` lower than
+    ``error`` (i.e. ``debug``, ``info``, ``notice`` or ``warning``) will not
+    actually exclude log messages for those HTTP codes because they are logged
+    with level of ``error`` or higher and ``passthru_level`` takes precedence
+    over the HTTP codes being listed in ``excluded_http_codes``.

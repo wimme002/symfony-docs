@@ -23,7 +23,9 @@ manually, but then you should just use the ``ChoiceType`` directly.
 +-------------+------------------------------------------------------------------------+
 | Rendered as | can be various tags (see :ref:`forms-reference-choice-tags`)           |
 +-------------+------------------------------------------------------------------------+
-| Options     | - `choice_translation_locale`_                                         |
+| Options     | - `alpha3`_                                                            |
+|             | - `choice_self_translation`_                                           |
+|             | - `choice_translation_locale`_                                         |
 +-------------+------------------------------------------------------------------------+
 | Overridden  | - `choices`_                                                           |
 | options     |                                                                        |
@@ -40,34 +42,67 @@ manually, but then you should just use the ``ChoiceType`` directly.
 |             |                                                                        |
 |             | from the :doc:`FormType </reference/forms/types/form>`                 |
 |             |                                                                        |
+|             | - `attr`_                                                              |
 |             | - `data`_                                                              |
 |             | - `disabled`_                                                          |
 |             | - `empty_data`_                                                        |
 |             | - `help`_                                                              |
 |             | - `help_attr`_                                                         |
+|             | - `help_html`_                                                         |
 |             | - `label`_                                                             |
 |             | - `label_attr`_                                                        |
 |             | - `label_format`_                                                      |
 |             | - `mapped`_                                                            |
 |             | - `required`_                                                          |
+|             | - `row_attr`_                                                          |
 +-------------+------------------------------------------------------------------------+
 | Parent type | :doc:`ChoiceType </reference/forms/types/choice>`                      |
 +-------------+------------------------------------------------------------------------+
 | Class       | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\LanguageType` |
 +-------------+------------------------------------------------------------------------+
 
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
+
 Field Options
 -------------
+
+alpha3
+~~~~~~
+
+**type**: ``boolean`` **default**: ``false``
+
+If this option is ``true``, the choice values use the `ISO 639-2 alpha-3`_
+three-letter codes (e.g. French = ``fra``) instead of the default
+`ISO 639-1 alpha-2`_ two-letter codes (e.g. French = ``fr``).
+
+choice_self_translation
+~~~~~~~~~~~~~~~~~~~~~~~
+
+**type**: ``boolean`` **default**: ``false``
+
+.. versionadded:: 5.1
+
+    The ``choice_self_translation`` option was introduced in Symfony 5.1.
+
+By default, language names are translated into the current locale of the
+application. For example, when browsing the application in English, you'll get
+an array like ``[..., 'cs' => 'Czech', ..., 'es' => 'Spanish', ..., 'zh' => 'Chinese']``
+and when browsing it in French, you'll get the following array:
+``[..., 'cs' => 'tchèque', ..., 'es' => 'espagnol', ..., 'zh' => 'chinois']``.
+
+If this option is ``true``, each language is translated into its own language,
+regardless of the current application locale:
+``[..., 'cs' => 'čeština', ..., 'es' => 'español', ..., 'zh' => '中文']``.
 
 .. include:: /reference/forms/types/options/choice_translation_locale.rst.inc
 
 Overridden Options
 ------------------
 
-choices
-~~~~~~~
+``choices``
+~~~~~~~~~~~
 
-**default**: ``Symfony\Component\Intl\Intl::getLanguageBundle()->getLanguageNames()``.
+**default**: ``Symfony\Component\Intl\Languages::getNames()``.
 
 The choices option defaults to all languages.
 The default locale is used to translate the languages names.
@@ -98,6 +133,8 @@ These options inherit from the :doc:`ChoiceType </reference/forms/types/choice>`
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
+.. include:: /reference/forms/types/options/attr.rst.inc
+
 .. include:: /reference/forms/types/options/data.rst.inc
 
 .. include:: /reference/forms/types/options/disabled.rst.inc
@@ -109,7 +146,7 @@ The actual default value of this option depends on other field options:
 
 * If ``multiple`` is ``false`` and ``expanded`` is ``false``, then ``''``
   (empty string);
-* Otherwise ``array()`` (empty array).
+* Otherwise ``[]`` (empty array).
 
 .. include:: /reference/forms/types/options/empty_data.rst.inc
     :start-after: DEFAULT_PLACEHOLDER
@@ -117,6 +154,8 @@ The actual default value of this option depends on other field options:
 .. include:: /reference/forms/types/options/help.rst.inc
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
+
+.. include:: /reference/forms/types/options/help_html.rst.inc
 
 .. include:: /reference/forms/types/options/label.rst.inc
 
@@ -128,4 +167,8 @@ The actual default value of this option depends on other field options:
 
 .. include:: /reference/forms/types/options/required.rst.inc
 
+.. include:: /reference/forms/types/options/row_attr.rst.inc
+
+.. _`ISO 639-1 alpha-2`: https://en.wikipedia.org/wiki/ISO_639-1
+.. _`ISO 639-2 alpha-3`: https://en.wikipedia.org/wiki/ISO_639-2
 .. _`International Components for Unicode`: http://site.icu-project.org

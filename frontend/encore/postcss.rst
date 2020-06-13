@@ -8,7 +8,7 @@ First, download ``postcss-loader`` and any plugins you want, like ``autoprefixer
 
 .. code-block:: terminal
 
-    $ yarn add --dev postcss-loader autoprefixer
+    $ yarn add postcss-loader autoprefixer --dev
 
 Next, create a ``postcss.config.js`` file at the root of your project:
 
@@ -24,7 +24,7 @@ Next, create a ``postcss.config.js`` file at the root of your project:
         }
     }
 
-Then, Enable the loader in Encore!
+Then, enable the loader in Encore!
 
 .. code-block:: diff
 
@@ -48,15 +48,16 @@ You can also pass options to the `postcss-loader`_ by passing a callback:
         // ...
     +     .enablePostCssLoader((options) => {
     +         options.config = {
-    +             path: 'config/postcss.config.js'
+    +             // the directory where the postcss.config.js file is stored
+    +             path: 'path/to/config'
     +         };
     +     })
     ;
 
 .. _browserslist_package_config:
 
-Adding browserslist to package.json
------------------------------------
+Adding browserslist to ``package.json``
+---------------------------------------
 
 The ``autoprefixer`` (and many other tools) need to know what browsers you want to
 support. The best-practice is to configure this directly in your ``package.json``
@@ -75,9 +76,8 @@ support. The best-practice is to configure this directly in your ``package.json`
 
 See `browserslist`_ for more details on the syntax.
 
-.. _`PostCSS`: http://postcss.org/
+.. _`PostCSS`: https://postcss.org/
 .. _`autoprefixing`: https://github.com/postcss/autoprefixer
 .. _`linting`: https://stylelint.io/
 .. _`browserslist`: https://github.com/browserslist/browserslist
-.. _`babel-preset-env`: https://github.com/babel/babel/tree/master/packages/babel-preset-env
 .. _`postcss-loader`: https://github.com/postcss/postcss-loader

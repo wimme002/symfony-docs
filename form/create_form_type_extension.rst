@@ -40,7 +40,7 @@ First, create the form type extension class extending from
         public static function getExtendedTypes(): iterable
         {
             // return FormType::class to modify (nearly) every field in the system
-            return array(FileType::class);
+            return [FileType::class];
         }
     }
 
@@ -60,8 +60,9 @@ For more information on what those methods do, see the
 Registering your Form Type Extension as a Service
 -------------------------------------------------
 
-Form type extensions must be registered as services and :doc:`tagged </service_container/tags>`
-with the ``form.type_extension`` tag. If you're using the
+Form type extensions must be :ref:`registered as services <service-container-creating-service>`
+and :doc:`tagged </service_container/tags>` with the ``form.type_extension`` tag.
+If you're using the
 :ref:`default services.yaml configuration <service-container-services-load-example>`,
 this is already done for you, thanks to :ref:`autoconfiguration <services-autoconfigure>`.
 
@@ -77,6 +78,15 @@ this is already done for you, thanks to :ref:`autoconfiguration <services-autoco
 Once the extension is registered, any method that you've overridden (e.g.
 ``buildForm()``) will be called whenever *any* field of the given type
 (``FileType``) is built.
+
+.. tip::
+
+    Run the following command to verify that the form type extension was
+    successfully registered in the application:
+
+    .. code-block:: terminal
+
+        $ php bin/console debug:form
 
 Adding the extension Business Logic
 -----------------------------------
@@ -125,24 +135,24 @@ For example::
     namespace App\Form\Extension;
 
     use Symfony\Component\Form\AbstractTypeExtension;
-    use Symfony\Component\Form\FormView;
-    use Symfony\Component\Form\FormInterface;
-    use Symfony\Component\PropertyAccess\PropertyAccess;
-    use Symfony\Component\OptionsResolver\OptionsResolver;
     use Symfony\Component\Form\Extension\Core\Type\FileType;
+    use Symfony\Component\Form\FormInterface;
+    use Symfony\Component\Form\FormView;
+    use Symfony\Component\OptionsResolver\OptionsResolver;
+    use Symfony\Component\PropertyAccess\PropertyAccess;
 
     class ImageTypeExtension extends AbstractTypeExtension
     {
         public static function getExtendedTypes(): iterable
         {
             // return FormType::class to modify (nearly) every field in the system
-            return array(FileType::class);
+            return [FileType::class];
         }
 
         public function configureOptions(OptionsResolver $resolver)
         {
             // makes it legal for FileType fields to have an image_property option
-            $resolver->setDefined(array('image_property'));
+            $resolver->setDefined(['image_property']);
         }
 
         public function buildView(FormView $view, FormInterface $form, array $options)
@@ -169,7 +179,7 @@ Override the File Widget Template Fragment
 
 Each field type is rendered by a template fragment. Those template fragments
 can be overridden in order to customize form rendering. For more information,
-you can refer to the :ref:`form-customization-form-themes` article.
+you can refer to the :ref:`form fragment naming <form-fragment-naming>` rules.
 
 In your extension class, you added a new variable (``image_url``), but
 you still need to take advantage of this new variable in your templates.
@@ -205,9 +215,9 @@ next to the file field. For example::
     namespace App\Form\Type;
 
     use Symfony\Component\Form\AbstractType;
-    use Symfony\Component\Form\FormBuilderInterface;
-    use Symfony\Component\Form\Extension\Core\Type\TextType;
     use Symfony\Component\Form\Extension\Core\Type\FileType;
+    use Symfony\Component\Form\Extension\Core\Type\TextType;
+    use Symfony\Component\Form\FormBuilderInterface;
 
     class MediaType extends AbstractType
     {
@@ -215,7 +225,7 @@ next to the file field. For example::
         {
             $builder
                 ->add('name', TextType::class)
-                ->add('file', FileType::class, array('image_property' => 'webPath'));
+                ->add('file', FileType::class, ['image_property' => 'webPath']);
         }
     }
 
@@ -252,6 +262,6 @@ method to extend all of them::
 
         public static function getExtendedTypes(): iterable
         {
-            return array(DateTimeType::class, DateType::class, TimeType::class);
+            return [DateTimeType::class, DateType::class, TimeType::class];
         }
     }

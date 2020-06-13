@@ -15,21 +15,26 @@ The ``FileType`` represents a file input in your form.
 | options     | - `data_class`_                                                     |
 |             | - `empty_data`_                                                     |
 +-------------+---------------------------------------------------------------------+
-| Inherited   | - `disabled`_                                                       |
-| options     | - `error_bubbling`_                                                 |
+| Inherited   | - `attr`_                                                           |
+| options     | - `disabled`_                                                       |
+|             | - `error_bubbling`_                                                 |
 |             | - `error_mapping`_                                                  |
 |             | - `help`_                                                           |
 |             | - `help_attr`_                                                      |
+|             | - `help_html`_                                                      |
 |             | - `label`_                                                          |
 |             | - `label_attr`_                                                     |
 |             | - `label_format`_                                                   |
 |             | - `mapped`_                                                         |
 |             | - `required`_                                                       |
+|             | - `row_attr`_                                                       |
 +-------------+---------------------------------------------------------------------+
 | Parent type | :doc:`FormType </reference/forms/types/form>`                       |
 +-------------+---------------------------------------------------------------------+
 | Class       | :class:`Symfony\\Component\\Form\\Extension\\Core\\Type\\FileType`  |
 +-------------+---------------------------------------------------------------------+
+
+.. include:: /reference/forms/types/options/_debug_form.rst.inc
 
 Basic Usage
 -----------
@@ -88,8 +93,8 @@ upload associated with a Doctrine entity.
 Field Options
 -------------
 
-multiple
-~~~~~~~~
+``multiple``
+~~~~~~~~~~~~
 
 **type**: ``Boolean`` **default**: ``false``
 
@@ -100,15 +105,15 @@ Overridden Options
 
 .. include:: /reference/forms/types/options/compound_type.rst.inc
 
-data_class
-~~~~~~~~~~
+``data_class``
+~~~~~~~~~~~~~~
 
 **type**: ``string`` **default**: :class:`Symfony\\Component\\HttpFoundation\\File\\File`
 
 This option sets the appropriate file-related data mapper to be used by the type.
 
-empty_data
-~~~~~~~~~~
+``empty_data``
+~~~~~~~~~~~~~~
 
 **type**: ``mixed`` **default**: ``null``
 
@@ -120,6 +125,8 @@ Inherited Options
 
 These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
+.. include:: /reference/forms/types/options/attr.rst.inc
+
 .. include:: /reference/forms/types/options/disabled.rst.inc
 
 .. include:: /reference/forms/types/options/error_bubbling.rst.inc
@@ -129,6 +136,8 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 .. include:: /reference/forms/types/options/help.rst.inc
 
 .. include:: /reference/forms/types/options/help_attr.rst.inc
+
+.. include:: /reference/forms/types/options/help_html.rst.inc
 
 .. include:: /reference/forms/types/options/label.rst.inc
 
@@ -140,11 +149,13 @@ These options inherit from the :doc:`FormType </reference/forms/types/form>`:
 
 .. include:: /reference/forms/types/options/required.rst.inc
 
+.. include:: /reference/forms/types/options/row_attr.rst.inc
+
 Form Variables
 --------------
 
 ========  ==========  ===============================================================================
 Variable  Type        Usage
 ========  ==========  ===============================================================================
-type      ``string``  The type variable is set to ``file``, in order to render as a file input field.
+``type``  ``string``  The type variable is set to ``file``, in order to render as a file input field.
 ========  ==========  ===============================================================================

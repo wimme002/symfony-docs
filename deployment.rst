@@ -63,13 +63,16 @@ manually taking other steps (see `Common Post-Deployment Tasks`_).
 Using Platforms as a Service
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Using a Platform as a Service (PaaS) can be a great way to deploy your Symfony app
-quickly and easily. There are many PaaS - below are a few that work well with Symfony:
+Using a Platform as a Service (PaaS) can be a great way to deploy your Symfony
+app quickly. There are many PaaS - below are a few that work well with Symfony:
 
+* `Symfony Cloud`_
 * `Heroku`_
 * `Platform.sh`_
 * `Azure`_
 * `fortrabbit`_
+* `Clever Cloud`_
+* `Scalingo`_
 
 Using Build Scripts and other Tools
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -100,13 +103,6 @@ specifically tailored to the requirements of Symfony.
     `Symfony plugin`_ is a plugin to ease Symfony related tasks, inspired by `Capifony`_
     (which works only with Capistrano 2).
 
-`sf2debpkg`_
-    Helps you build a native Debian package for your Symfony project.
-
-Basic scripting
-    You can use a shell script, `Ant`_ or any other build tool to script
-    the deploying of your project.
-
 Common Post-Deployment Tasks
 ----------------------------
 
@@ -116,8 +112,8 @@ you'll need to do:
 A) Check Requirements
 ~~~~~~~~~~~~~~~~~~~~~
 
-Use the :doc:`Symfony Requirements Checker </reference/requirements>` to check
-if your server meets the technical requirements to run Symfony applications.
+Use the ``check:requirements`` command to check if your server meets the
+:ref:`technical requirements for running Symfony applications <symfony-tech-requirements>`.
 
 .. _b-configure-your-app-config-parameters-yml-file:
 
@@ -144,7 +140,6 @@ most natural in your hosting environment.
 
     .. code-block:: terminal
 
-        $ composer remove symfony/dotenv
         $ composer require symfony/dotenv
 
 C) Install/Update your Vendors
@@ -168,8 +163,8 @@ as you normally do:
 .. caution::
 
     If you get a "class not found" error during this step, you may need to
-    run ``export APP_ENV=prod`` (or ``export SYMFONY_ENV=prod`` if you're not
-    using :doc:`Symfony Flex </setup/flex>`) before running this command so
+    run ``export APP_ENV=prod`` (or ``export SYMFONY_ENV=prod`` if you're not
+    using :ref:`Symfony Flex <symfony-flex>`) before running this command so
     that the ``post-install-cmd`` scripts run in the ``prod`` environment.
 
 D) Clear your Symfony Cache
@@ -188,7 +183,7 @@ There may be lots of other things that you need to do, depending on your
 setup:
 
 * Running any database migrations
-* Clearing your APC cache
+* Clearing your APCu cache
 * Add/edit CRON jobs
 * :ref:`Building and minifying your assets <how-do-i-deploy-my-encore-assets>` with Webpack Encore
 * Pushing assets to a CDN
@@ -216,28 +211,15 @@ Troubleshooting
 Deployments not Using the ``composer.json`` File
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Symfony applications provide a ``kernel.project_dir`` parameter and a related
-:method:`Symfony\\Component\\HttpKernel\\Kernel::getProjectDir` method.
-You can use this method to perform operations with file paths relative to your
-project's root directory. The logic to find that project root directory is based
-on the location of the main ``composer.json`` file.
+The :ref:`project root directory <configuration-kernel-project-directory>`
+(whose value is used via the ``kernel.project_dir`` parameter and the
+:method:`Symfony\\Component\\HttpKernel\\Kernel::getProjectDir` method) is
+calculated automatically by Symfony as the directory where the main
+``composer.json`` file is stored.
 
-If your deployment method doesn't use Composer, you may have removed the
-``composer.json`` file and the application won't work on the production server.
-The solution is to override the ``getProjectDir()`` method in the application
-kernel and return your project's root directory::
-
-    // src/Kernel.php
-    // ...
-    class Kernel extends BaseKernel
-    {
-        // ...
-
-        public function getProjectDir()
-        {
-            return __DIR__.'/..';
-        }
-    }
+In deployments not using the ``composer.json`` file, you'll need to override the
+:method:`Symfony\\Component\\HttpKernel\\Kernel::getProjectDir` method
+:ref:`as explained in this section <configuration-kernel-project-directory>`.
 
 Learn More
 ----------
@@ -248,19 +230,20 @@ Learn More
     deployment/proxies
 
 .. _`Capifony`: https://github.com/everzet/capifony
-.. _`Capistrano`: http://capistranorb.com/
-.. _`sf2debpkg`: https://github.com/liip/sf2debpkg
+.. _`Capistrano`: https://capistranorb.com/
 .. _`Fabric`: http://www.fabfile.org/
 .. _`Ansistrano`: https://ansistrano.com/
 .. _`Magallanes`: https://github.com/andres-montanez/Magallanes
-.. _`Ant`: http://blog.sznapka.pl/deploying-symfony2-applications-with-ant
 .. _`Memcached`: http://memcached.org/
-.. _`Redis`: http://redis.io/
+.. _`Redis`: https://redis.io/
 .. _`Symfony plugin`: https://github.com/capistrano/symfony/
-.. _`Deployer`: http://deployer.org/
+.. _`Deployer`: https://deployer.org/
 .. _`Git Tagging`: https://git-scm.com/book/en/v2/Git-Basics-Tagging
-.. _`Heroku`: https://devcenter.heroku.com/articles/getting-started-with-symfony
-.. _`platform.sh`: https://docs.platform.sh/frameworks/symfony.html
+.. _`Heroku`: https://devcenter.heroku.com/articles/deploying-symfony4
+.. _`Platform.sh`: https://docs.platform.sh/frameworks/symfony.html
 .. _`Azure`: https://azure.microsoft.com/en-us/develop/php/
-.. _`fortrabbit`: https://help.fortrabbit.com/install-symfony
+.. _`fortrabbit`: https://help.fortrabbit.com/install-symfony-4-uni
 .. _`EasyDeployBundle`: https://github.com/EasyCorp/easy-deploy-bundle
+.. _`Clever Cloud`: https://www.clever-cloud.com/doc/php/tutorial-symfony/
+.. _`Symfony Cloud`: https://symfony.com/doc/master/cloud/intro.html
+.. _`Scalingo`: https://doc.scalingo.com/languages/php/symfony

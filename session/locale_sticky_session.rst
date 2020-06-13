@@ -13,16 +13,16 @@ in the session, so that it's used on subsequent requests.
 Creating a LocaleSubscriber
 ---------------------------
 
-Create and a :ref:`new event subscriber <events-subscriber>`. Typically, ``_locale``
+Create a :ref:`new event subscriber <events-subscriber>`. Typically, ``_locale``
 is used as a routing parameter to signify the locale, though you can determine the
 correct locale however you want::
 
     // src/EventSubscriber/LocaleSubscriber.php
     namespace App\EventSubscriber;
 
-    use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-    use Symfony\Component\HttpKernel\KernelEvents;
     use Symfony\Component\EventDispatcher\EventSubscriberInterface;
+    use Symfony\Component\HttpKernel\Event\RequestEvent;
+    use Symfony\Component\HttpKernel\KernelEvents;
 
     class LocaleSubscriber implements EventSubscriberInterface
     {
@@ -33,7 +33,7 @@ correct locale however you want::
             $this->defaultLocale = $defaultLocale;
         }
 
-        public function onKernelRequest(GetResponseEvent $event)
+        public function onKernelRequest(RequestEvent $event)
         {
             $request = $event->getRequest();
             if (!$request->hasPreviousSession()) {
@@ -51,10 +51,10 @@ correct locale however you want::
 
         public static function getSubscribedEvents()
         {
-            return array(
+            return [
                 // must be registered before (i.e. with a higher priority than) the default Locale listener
-                KernelEvents::REQUEST => array(array('onKernelRequest', 20)),
-            );
+                KernelEvents::REQUEST => [['onKernelRequest', 20]],
+            ];
         }
     }
 
@@ -63,7 +63,7 @@ you're done! Symfony will automatically know about the event subscriber and call
 the ``onKernelRequest`` method on each request.
 
 To see it working, either set the ``_locale`` key on the session manually (e.g.
-via some "Change Locale" route & controller), or create a route with a the :ref:`_locale default <translation-locale-url>`.
+via some "Change Locale" route & controller), or create a route with the :ref:`_locale default <translation-locale-url>`.
 
 .. sidebar:: Explicitly Configure the Subscriber
 
@@ -89,14 +89,14 @@ via some "Change Locale" route & controller), or create a route with a the :ref:
             <container xmlns="http://symfony.com/schema/dic/services"
                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                 xsi:schemaLocation="http://symfony.com/schema/dic/services
-                    http://symfony.com/schema/dic/services/services-1.0.xsd">
+                    https://symfony.com/schema/dic/services/services-1.0.xsd">
 
                 <services>
                     <service id="App\EventSubscriber\LocaleSubscriber">
                         <argument>%kernel.default_locale%</argument>
 
                         <!-- uncomment the next line if you are not using autoconfigure -->
-                        <!-- <tag name="kernel.event_subscriber" /> -->
+                        <!-- <tag name="kernel.event_subscriber"/> -->
                     </service>
                 </services>
             </container>
@@ -174,9 +174,9 @@ event::
 
         public static function getSubscribedEvents()
         {
-            return array(
+            return [
                 SecurityEvents::INTERACTIVE_LOGIN => 'onInteractiveLogin',
-            );
+            ];
         }
     }
 

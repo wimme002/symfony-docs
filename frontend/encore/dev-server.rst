@@ -17,46 +17,85 @@ Twig shortcuts (or are :ref:`processing your assets through entrypoints.json <lo
 in some other way), you're done: the paths in your templates will automatically point
 to the dev server.
 
-You can also pass options to the ``dev-server`` command: any options that are supported
-by the normal `webpack-dev-server`_. For example:
+Enabling HTTPS using the Symfony Web Server
+-------------------------------------------
+
+If you're using the :doc:`Symfony web server </setup/symfony_server>` locally with HTTPS,
+you'll need to also tell the dev-server to use HTTPS. To do this, you can reuse the Symfony web
+server SSL certificate:
+
+.. code-block:: terminal
+
+    # Unix-based systems
+    $ yarn dev-server --https --pfx=$HOME/.symfony/certs/default.p12
+
+    # Windows
+    $ encore dev-server --https --pfx=%UserProfile%\.symfony\certs\default.p12
+
+dev-server Options
+------------------
+
+The ``dev-server`` command supports all the options defined by `webpack-dev-server`_.
+You can set these options via command line options:
 
 .. code-block:: terminal
 
     $ yarn encore dev-server --https --port 9000
 
-This will start a server at ``https://localhost:9000``.
+You can also set these options using the ``Encore.configureDevServerOptions()``
+method in your ``webpack.config.js`` file:
 
-.. note::
+.. code-block:: javascript
 
-    This Webpack server is independent from
-    :doc:`Symfony's development web server </setup/built_in_web_server>` and
-    you need to run both separately.
+    // webpack.config.js
+    // ...
 
-Using dev-server inside a VM
-----------------------------
+    Encore
+        // ...
 
-If you're using ``dev-server`` from inside a virtual machine, then you'll need
-to bind to all IP addresses and allow any host to access the server:
+        .configureDevServerOptions(options => {
+            options.https = {
+                key: '/path/to/server.key',
+                cert: '/path/to/server.crt',
+            }
+        })
+    ;
 
-.. code-block:: terminal
+.. versionadded:: 0.28.4
 
-    $ ./node_modules/.bin/encore dev-server --host 0.0.0.0 --disable-host-check
-
-You can now access the dev-server using the IP address to your virtual machine on
-port 8080 - e.g. http://192.168.1.1:8080.
+    The ``Encore.configureDevServerOptions()`` method was introduced in Encore 0.28.4.
 
 Hot Module Replacement HMR
 --------------------------
 
-Encore *does* support `HMR`_, but only in some areas. To activate it, pass the ``--hot``
+Encore *does* support `HMR`_ for :doc:`Vue.js </frontend/encore/vuejs>`, but
+does *not* work for styles anywhere at this time. To activate it, pass the ``--hot``
 option:
 
 .. code-block:: terminal
 
     $ ./node_modules/.bin/encore dev-server --hot
 
-HMR currently works for :doc:`Vue.js </frontend/encore/vuejs>`, but does *not* work
-for styles anywhere at this time.
+If you experience issues related to CORS (Cross Origin Resource Sharing), add
+the ``--disable-host-check`` and ``--port`` options to the ``dev-server``
+command in the ``package.json`` file:
+
+.. code-block:: diff
+
+    {
+        ...
+        "scripts": {
+    -        "dev-server": "encore dev-server",
+    +        "dev-server": "encore dev-server --port 8080 --disable-host-check",
+            ...
+        }
+    }
+
+.. caution::
+
+    Beware that `it's not recommended to disable host checking`_ in general, but
+    here it's required to solve the CORS issue.
 
 .. _`webpack-dev-server`: https://webpack.js.org/configuration/dev-server/
 .. _`HMR`: https://webpack.js.org/concepts/hot-module-replacement/
+.. _`it's not recommended to disable host checking`: https://webpack.js.org/configuration/dev-server/#devserverdisablehostcheck

@@ -20,8 +20,6 @@ Installation
 
     $ composer require symfony/form
 
-Alternatively, you can clone the `<https://github.com/symfony/form>`_ repository.
-
 .. include:: /components/require_autoload.rst.inc
 
 Configuration
@@ -57,8 +55,8 @@ support for very important features:
 The Symfony Form component relies on other libraries to solve these problems.
 Most of the time you will use Twig and the Symfony
 :doc:`HttpFoundation </components/http_foundation>`,
-Translation and Validator components, but you can replace any of these with
-a different library of your choice.
+:doc:`Translation </translation>` and :doc:`Validator </components/validator>`
+components, but you can replace any of these with a different library of your choice.
 
 The following sections explain how to plug these libraries into the form
 factory.
@@ -82,8 +80,8 @@ object to read data off of the correct PHP superglobals (i.e. ``$_POST`` or
 .. seealso::
 
     If you need more control over exactly when your form is submitted or which
-    data is passed to it, you can use the :method:`Symfony\\Component\\Form\\FormInterface::submit`
-    for this. Read more about it :ref:`form-call-submit-directly`.
+    data is passed to it,
+    :doc:`use the submit() method to handle form submissions </form/direct_submit>`.
 
 .. sidebar:: Integration with the HttpFoundation Component
 
@@ -91,8 +89,8 @@ object to read data off of the correct PHP superglobals (i.e. ``$_POST`` or
     :class:`Symfony\\Component\\Form\\Extension\\HttpFoundation\\HttpFoundationExtension`
     to your form factory::
 
-        use Symfony\Component\Form\Forms;
         use Symfony\Component\Form\Extension\HttpFoundation\HttpFoundationExtension;
+        use Symfony\Component\Form\Forms;
 
         $formFactory = Forms::createFormFactoryBuilder()
             ->addExtension(new HttpFoundationExtension())
@@ -121,12 +119,12 @@ use the built-in support, first install the Security CSRF component:
 
 The following snippet adds CSRF protection to the form factory::
 
+    use Symfony\Component\Form\Extension\Csrf\CsrfExtension;
     use Symfony\Component\Form\Forms;
     use Symfony\Component\HttpFoundation\Session\Session;
-    use Symfony\Component\Form\Extension\Csrf\CsrfExtension;
-    use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
-    use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
     use Symfony\Component\Security\Csrf\CsrfTokenManager;
+    use Symfony\Component\Security\Csrf\TokenGenerator\UriSafeTokenGenerator;
+    use Symfony\Component\Security\Csrf\TokenStorage\SessionTokenStorage;
 
     // creates a Session object from the HttpFoundation component
     $session = new Session();
@@ -157,7 +155,7 @@ the CSRF generator and validated when binding the form.
 
 You can disable CSRF protection per form using the ``csrf_protection`` option::
 
-    use Symfony\\Component\\Form\\Extension\\Core\\Type\\FormType
+    use Symfony\Component\Form\Extension\Core\Type\FormType;
 
     $form = $formFactory->createBuilder(FormType::class, null, ['csrf_protection' => false])
         ->getForm();
@@ -165,10 +163,10 @@ You can disable CSRF protection per form using the ``csrf_protection`` option::
 Twig Templating
 ~~~~~~~~~~~~~~~
 
-If you're using the Form component to process HTML forms, you'll need a way
-to render your form as HTML form fields (complete with field values,
-errors, and labels). If you use `Twig`_ as your template engine, the Form
-component offers a rich integration.
+If you're using the Form component to process HTML forms, you'll need a way to
+render your form as HTML form fields (complete with field values, errors, and
+labels). If you use `Twig`_ as your template engine, the Form component offers a
+rich integration.
 
 To use the integration, you'll need the twig bridge, which provides integration
 between Twig and several Symfony components:
@@ -177,15 +175,16 @@ between Twig and several Symfony components:
 
     $ composer require symfony/twig-bridge
 
-The TwigBridge integration provides you with several :doc:`Twig Functions </reference/forms/twig_reference>`
-that help you render the HTML widget, label and error for each field
+The TwigBridge integration provides you with several
+:ref:`Twig Functions <reference-form-twig-functions-variables>`
+that help you render the HTML widget, label, help and errors for each field
 (as well as a few other things). To configure the integration, you'll need
 to bootstrap or access Twig and add the :class:`Symfony\\Bridge\\Twig\\Extension\\FormExtension`::
 
-    use Symfony\Component\Form\Forms;
     use Symfony\Bridge\Twig\Extension\FormExtension;
-    use Symfony\Component\Form\FormRenderer;
     use Symfony\Bridge\Twig\Form\TwigRendererEngine;
+    use Symfony\Component\Form\FormRenderer;
+    use Symfony\Component\Form\Forms;
     use Twig\Environment;
     use Twig\Loader\FilesystemLoader;
     use Twig\RuntimeLoader\FactoryRuntimeLoader;
@@ -202,16 +201,16 @@ to bootstrap or access Twig and add the :class:`Symfony\\Bridge\\Twig\\Extension
     // the path to your other templates
     $viewsDirectory = realpath(__DIR__.'/../views');
 
-    $twig = new Environment(new FilesystemLoader(array(
+    $twig = new Environment(new FilesystemLoader([
         $viewsDirectory,
         $vendorTwigBridgeDirectory.'/Resources/views/Form',
-    )));
-    $formEngine = new TwigRendererEngine(array($defaultFormTheme), $twig);
-    $twig->addRuntimeLoader(new FactoryRuntimeLoader(array(
+    ]));
+    $formEngine = new TwigRendererEngine([$defaultFormTheme], $twig);
+    $twig->addRuntimeLoader(new FactoryRuntimeLoader([
         FormRenderer::class => function () use ($formEngine, $csrfManager) {
             return new FormRenderer($formEngine, $csrfManager);
         },
-    )));
+    ]));
 
     // ... (see the previous CSRF Protection section for more information)
 
@@ -225,13 +224,13 @@ to bootstrap or access Twig and add the :class:`Symfony\\Bridge\\Twig\\Extension
 
 .. versionadded:: 1.30
 
-    The ``Twig\\RuntimeLoader\\FactoryRuntimeLoader`` was introduced in Twig 1.30.
+    The ``Twig\RuntimeLoader\FactoryRuntimeLoader`` was introduced in Twig 1.30.
 
 The exact details of your `Twig Configuration`_ will vary, but the goal is
 always to add the :class:`Symfony\\Bridge\\Twig\\Extension\\FormExtension`
 to Twig, which gives you access to the Twig functions for rendering forms.
 To do this, you first need to create a :class:`Symfony\\Bridge\\Twig\\Form\\TwigRendererEngine`,
-where you define your :ref:`form themes <form-customization-form-themes>`
+where you define your :doc:`form themes </form/form_themes>`
 (i.e. resources/files that define form HTML markup).
 
 For general details on rendering forms, see :doc:`/form/form_customization`.
@@ -247,13 +246,13 @@ Translation
 ~~~~~~~~~~~
 
 If you're using the Twig integration with one of the default form theme files
-(e.g. ``form_div_layout.html.twig``), there are 2 Twig filters (``trans``
-and ``transChoice``) that are used for translating form labels, errors, option
+(e.g. ``form_div_layout.html.twig``), there is a Twig filter (``trans``)
+that is used for translating form labels, errors, option
 text and other strings.
 
-To add these Twig filters, you can either use the built-in
+To add the ``trans`` Twig filter, you can either use the built-in
 :class:`Symfony\\Bridge\\Twig\\Extension\\TranslationExtension` that integrates
-with Symfony's Translation component, or add the 2 Twig filters yourself,
+with Symfony's Translation component, or add the Twig filter yourself,
 via your own Twig extension.
 
 To use the built-in integration, be sure that your project has Symfony's
@@ -265,12 +264,12 @@ installed:
     $ composer require symfony/translation symfony/config
 
 Next, add the :class:`Symfony\\Bridge\\Twig\\Extension\\TranslationExtension`
-to your ``Twig\\Environment`` instance::
+to your ``Twig\Environment`` instance::
 
-    use Symfony\Component\Form\Forms;
-    use Symfony\Component\Translation\Translator;
-    use Symfony\Component\Translation\Loader\XliffFileLoader;
     use Symfony\Bridge\Twig\Extension\TranslationExtension;
+    use Symfony\Component\Form\Forms;
+    use Symfony\Component\Translation\Loader\XliffFileLoader;
+    use Symfony\Component\Translation\Translator;
 
     // creates the Translator
     $translator = new Translator('en');
@@ -282,7 +281,7 @@ to your ``Twig\\Environment`` instance::
         'en'
     );
 
-    // adds the TranslationExtension (gives us trans and transChoice filters)
+    // adds the TranslationExtension (it gives us trans filter)
     $twig->addExtension(new TranslationExtension($translator));
 
     $formFactory = Forms::createFormFactoryBuilder()
@@ -317,8 +316,8 @@ errors are then mapped to the correct field and rendered.
 
 Your integration with the Validation component will look something like this::
 
-    use Symfony\Component\Form\Forms;
     use Symfony\Component\Form\Extension\Validator\ValidatorExtension;
+    use Symfony\Component\Form\Forms;
     use Symfony\Component\Validator\Validation;
 
     $vendorDirectory = realpath(__DIR__.'/../vendor');
@@ -406,9 +405,9 @@ is created from the form factory.
             ->add('dueDate', DateType::class)
             ->getForm();
 
-        var_dump($twig->render('new.html.twig', array(
+        var_dump($twig->render('new.html.twig', [
             'form' => $form->createView(),
-        )));
+        ]));
 
     .. code-block:: php-symfony
 
@@ -432,9 +431,9 @@ is created from the form factory.
                     ->add('dueDate', DateType::class)
                     ->getForm();
 
-                return $this->render('task/new.html.twig', array(
+                return $this->render('task/new.html.twig', [
                     'form' => $form->createView(),
-                ));
+                ]);
             }
         }
 
@@ -462,9 +461,9 @@ an "edit" form), pass in the default data when creating your form builder:
 
         // ...
 
-        $defaults = array(
+        $defaults = [
             'dueDate' => new \DateTime('tomorrow'),
-        );
+        ];
 
         $form = $formFactory->createBuilder(FormType::class, $defaults)
             ->add('task', TextType::class)
@@ -484,9 +483,9 @@ an "edit" form), pass in the default data when creating your form builder:
         {
             public function new(Request $request)
             {
-                $defaults = array(
+                $defaults = [
                     'dueDate' => new \DateTime('tomorrow'),
-                );
+                ];
 
                 $form = $this->createFormBuilder($defaults)
                     ->add('task', TextType::class)
@@ -510,15 +509,15 @@ Rendering the Form
 
 Now that the form has been created, the next step is to render it. This is
 done by passing a special form "view" object to your template (notice the
-``$form->createView()`` in the controller above) and using a set of form
-helper functions:
+``$form->createView()`` in the controller above) and using a set of
+:ref:`form helper functions <reference-form-twig-functions>`:
 
 .. code-block:: html+twig
 
     {{ form_start(form) }}
         {{ form_widget(form) }}
 
-        <input type="submit" />
+        <input type="submit"/>
     {{ form_end(form) }}
 
 .. image:: /_images/form/simple-form.png
@@ -528,7 +527,7 @@ That's it! By printing ``form_widget(form)``, each field in the form is
 rendered, along with a label and error message (if there is one). While this is
 convenient, it's not very flexible (yet). Usually, you'll want to render each
 form field individually so you can control how the form looks. You'll learn how
-to do that in the ":doc:`/form/rendering`" section.
+to do that in the :doc:`form customization </form/form_customization>` article.
 
 Changing a Form's Method and Action
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -536,7 +535,7 @@ Changing a Form's Method and Action
 By default, a form is submitted to the same URI that rendered the form with
 an HTTP POST request. This behavior can be changed using the :ref:`form-option-action`
 and :ref:`form-option-method` options (the ``method`` option is also used
-by ``handleRequest()`` to determine whether a form has been submitted):
+by :method:`Symfony\\Component\\Form\\Form::handleRequest` to determine whether a form has been submitted):
 
 .. configuration-block::
 
@@ -546,10 +545,10 @@ by ``handleRequest()`` to determine whether a form has been submitted):
 
         // ...
 
-        $formBuilder = $formFactory->createBuilder(FormType::class, null, array(
+        $formBuilder = $formFactory->createBuilder(FormType::class, null, [
             'action' => '/search',
             'method' => 'GET',
-        ));
+        ]);
 
         // ...
 
@@ -565,10 +564,10 @@ by ``handleRequest()`` to determine whether a form has been submitted):
         {
             public function search()
             {
-                $formBuilder = $this->createFormBuilder(null, array(
+                $formBuilder = $this->createFormBuilder(null, [
                     'action' => '/search',
                     'method' => 'GET',
-                ));
+                ]);
 
                 // ...
             }
@@ -652,15 +651,15 @@ This defines a common form "workflow", which contains 3 different possibilities:
 1) On the initial GET request (i.e. when the user "surfs" to your page),
    build your form and render it;
 
-If the request is a POST, process the submitted data (via ``handleRequest()``).
+If the request is a POST, process the submitted data (via :method:`Symfony\\Component\\Form\\Form::handleRequest`).
 Then:
 
 2) if the form is invalid, re-render the form (which will now contain errors);
 3) if the form is valid, perform some action and redirect.
 
 Luckily, you don't need to decide whether or not a form has been submitted.
-Pass the current request to the ``handleRequest()`` method. Then, the Form
-component will do all the necessary work for you.
+Just pass the current request to the :method:`Symfony\\Component\\Form\\Form::handleRequest`
+method. Then, the Form component will do all the necessary work for you.
 
 .. _component-form-intro-validation:
 
@@ -680,15 +679,15 @@ option when building each field:
         use Symfony\Component\Form\Extension\Core\Type\DateType;
 
         $form = $formFactory->createBuilder()
-            ->add('task', TextType::class, array(
+            ->add('task', TextType::class, [
                 'constraints' => new NotBlank(),
-            ))
-            ->add('dueDate', DateType::class, array(
-                'constraints' => array(
+            ])
+            ->add('dueDate', DateType::class, [
+                'constraints' => [
                     new NotBlank(),
                     new Type(\DateTime::class),
-                )
-            ))
+                ]
+            ])
             ->getForm();
 
     .. code-block:: php-symfony
@@ -707,15 +706,15 @@ option when building each field:
             public function new(Request $request)
             {
                 $form = $this->createFormBuilder()
-                    ->add('task', TextType::class, array(
+                    ->add('task', TextType::class, [
                         'constraints' => new NotBlank(),
-                    ))
-                    ->add('dueDate', DateType::class, array(
-                        'constraints' => array(
+                    ])
+                    ->add('dueDate', DateType::class, [
+                        'constraints' => [
                             new NotBlank(),
                             new Type(\DateTime::class),
-                        )
-                    ))
+                        ]
+                    ])
                     ->getForm();
                 // ...
             }
@@ -764,8 +763,9 @@ method. This is useful when you'd like to validate the form without showing
 validation errors to the user (i.e. during a partial AJAX submission or
 :doc:`dynamic form modification </form/dynamic_form_modification>`).
 
-Because clearing the errors makes the form valid, ``clearErrors()`` should only
-be called after testing whether the form is valid.
+Because clearing the errors makes the form valid,
+:method:`Symfony\\Component\\Form\\ClearableErrorsInterface::clearErrors`
+should only be called after testing whether the form is valid.
 
 Learn more
 ----------
@@ -776,6 +776,5 @@ Learn more
 
     /form/*
 
-.. _Packagist: https://packagist.org/packages/symfony/form
 .. _Twig: https://twig.symfony.com
 .. _`Twig Configuration`: https://twig.symfony.com/doc/2.x/intro.html

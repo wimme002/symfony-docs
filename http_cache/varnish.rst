@@ -63,9 +63,9 @@ authentication, have Varnish remove the corresponding header from requests to
 prevent clients from bypassing the cache. In practice, you will need sessions
 at least for some parts of the site, e.g. when using forms with
 :doc:`CSRF Protection </security/csrf>`. In this situation, make sure to
-:doc:`only start a session when actually needed </session/avoid_session_start>`
+:ref:`only start a session when actually needed <session-avoid-start>`
 and clear the session when it is no longer needed. Alternatively, you can look
-into :doc:`/http_cache/form_csrf_caching`.
+into :ref:`caching pages that contain CSRF protected forms <caching-pages-that-contain-csrf-protected-forms>`.
 
 Cookies created in JavaScript and used only in the frontend, e.g. when using
 Google Analytics, are nonetheless sent to the server. These cookies are not
@@ -134,9 +134,8 @@ using Varnish 3:
     .. code-block:: varnish3
 
         sub vcl_fetch {
-            /* By default, Varnish3 ignores Cache-Control: no-cache and private
-               https://www.varnish-cache.org/docs/3.0/tutorial/increasing_your_hitrate.html#cache-control
-             */
+            // By default, Varnish3 ignores Cache-Control: no-cache and private
+            // https://www.varnish-cache.org/docs/3.0/tutorial/increasing_your_hitrate.html#cache-control
             if (beresp.http.Cache-Control ~ "private" ||
                 beresp.http.Cache-Control ~ "no-cache" ||
                 beresp.http.Cache-Control ~ "no-store"
@@ -234,13 +233,12 @@ proxy before it has expired, it adds complexity to your caching setup.
     The documentation of the `FOSHttpCacheBundle`_ explains how to configure
     Varnish and other reverse proxies for cache invalidation.
 
-.. _`Varnish`: https://www.varnish-cache.org
+.. _`Varnish`: https://varnish-cache.org/
 .. _`Edge Architecture`: http://www.w3.org/TR/edge-arch
-.. _`GZIP and Varnish`: https://www.varnish-cache.org/docs/3.0/phk/gzip.html
-.. _`Clean the cookies header`: https://www.varnish-cache.org/trac/wiki/VCLExampleRemovingSomeCookies
+.. _`clean the cookies header`: https://varnish-cache.org/trac/wiki/VCLExampleRemovingSomeCookies
 .. _`Surrogate-Capability Header`: http://www.w3.org/TR/edge-arch
-.. _`cache invalidation`: http://tools.ietf.org/html/rfc2616#section-13.10
-.. _`FOSHttpCacheBundle`: http://foshttpcachebundle.readthedocs.org/
-.. _`default.vcl`: https://github.com/varnish/Varnish-Cache/blob/3.0/bin/varnishd/default.vcl
-.. _`builtin.vcl`: https://github.com/varnish/Varnish-Cache/blob/4.1/bin/varnishd/builtin.vcl
-.. _`User Context`: http://foshttpcachebundle.readthedocs.org/en/latest/features/user-context.html
+.. _`cache invalidation`: https://tools.ietf.org/html/rfc2616#section-13.10
+.. _`FOSHttpCacheBundle`: https://foshttpcachebundle.readthedocs.io/en/latest/features/user-context.html
+.. _`default.vcl`: https://github.com/varnishcache/varnish-cache/blob/3.0/bin/varnishd/default.vcl
+.. _`builtin.vcl`: https://github.com/varnishcache/varnish-cache/blob/4.1/bin/varnishd/builtin.vcl
+.. _`User Context`: https://foshttpcachebundle.readthedocs.org/en/latest/features/user-context.html
